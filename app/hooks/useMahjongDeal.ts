@@ -1,52 +1,94 @@
 "use client";
 
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { dealMahjong } from "@/lib/mahjong";
 
-// 状態管理カスタムフック
+// ユニークID生成ヘルパー（簡単なインクリメント、uuidでもOK）
+let tileIdCounter = 0;
+function nextTileId() {
+  return `tile-${tileIdCounter++}`;
+}
+
+export type Tile = { id: string; type: string };
+
+function convertToTiles(tileTypes: string[]): Tile[] {
+  // 文字列配列 → ユニークID付きTile配列
+  return tileTypes.map((type) => ({ id: nextTileId(), type }));
+}
+
 export function useMahjongDeal() {
-  // 初期化：配牌・ドラ生成
-  const [deal, setDeal] = useState(() => dealMahjong());
+  const [deal, setDeal] = useState<{ player1: Tile[]; dora: Tile } | null>(null);
+  const [handTiles, setHandTiles] = useState<Tile[]>([]);
+  const [poolTiles, setPoolTiles] = useState<Tile[]>([]);
 
-  // 牌の移動管理
-  const [handTiles, setHandTiles] = useState<string[]>([]); // 13枚まで
-  const [poolTiles, setPoolTiles] = useState<string[]>(deal.player1); // 残りの配牌
-
-  // ドラ再セット
-  const reset = () => {
-    const next = dealMahjong();
-    setDeal(next);
+  // 初回のみ牌配列をユニークID付きで生成
+  useEffect(() => {
+    const raw = dealMahjong(); // ここでは { player1: string[], dora: string } 型を仮定
+    const playerTiles = convertToTiles(raw.player1);
+    const doraTile = { id: nextTileId(), type: raw.dora };
+    setDeal({ player1: playerTiles, dora: doraTile });
     setHandTiles([]);
-    setPoolTiles(next.player1);
+    setPoolTiles(playerTiles);
+  }, []);
+
+  // 手牌ゾーンにある牌をすべて配牌ゾーンに戻す
+  const reset = () => {
+    setPoolTiles([...poolTiles, ...handTiles]);
+    setHandTiles([]);
   };
 
-  // プール→手牌へ移動
-  const moveToHand = (tile: string) => {
-    if (handTiles.length >= 13) return;
-    if (!poolTiles.includes(tile)) return;
-    setHandTiles([...handTiles, tile]);
-    setPoolTiles(poolTiles.filter((t) => t !== tile));
+  // ゾーン間移動
+  const moveTile = (
+    tileId: string,
+    fromZone: "hand" | "pool",
+    toZone: "hand" | "pool",
+    atIdx?: number
+  ) => {
+    if (!deal) return;
+    if (fromZone === toZone) return;
+    let fromArr = fromZone === "hand" ? handTiles : poolTiles;
+    let toArr = toZone === "hand" ? handTiles : poolTiles;
+    const movingTile = fromArr.find((t) => t.id === tileId);
+    if (!movingTile) return;
+    if (toZone === "hand" && handTiles.length >= 13) return;
+
+    // Remove from current zone
+    fromArr = fromArr.filter((t) => t.id !== tileId);
+
+    // Insert into new zone
+    if (typeof atIdx === "number") {
+      toArr = [
+        ...toArr.slice(0, atIdx),
+        movingTile,
+        ...toArr.slice(atIdx)
+      ];
+    } else {
+      toArr = [...toArr, movingTile];
+    }
+    if (fromZone === "hand") setHandTiles(fromArr), setPoolTiles(toArr);
+    else setPoolTiles(fromArr), setHandTiles(toArr);
   };
 
-  // 手牌→プールへ戻す
-  const moveToPool = (tile: string) => {
-    if (!handTiles.includes(tile)) return;
-    setHandTiles(handTiles.filter((t) => t !== tile));
-    setPoolTiles([...poolTiles, tile]);
+  // ゾーン内並び替え
+  const reorderZone = (
+    zone: "hand" | "pool",
+    fromIdx: number,
+    toIdx: number
+  ) => {
+    const arr = zone === "hand" ? [...handTiles] : [...poolTiles];
+    const [removed] = arr.splice(fromIdx, 1);
+    arr.splice(toIdx, 0, removed);
+    if (zone === "hand") setHandTiles(arr);
+    else setPoolTiles(arr);
   };
-
-  // 並び替え（HandZoneで利用）
-  const reorderHand = (nextHand: string[]) => setHandTiles(nextHand);
 
   return {
-    // 状態
     handTiles,
     poolTiles,
-    dora: deal.dora,
+    dora: deal?.dora?.type ?? "",
+    doraTile: deal?.dora,
     reset,
-    moveToHand,
-    moveToPool,
-    reorderHand,
+    moveTile,
+    reorderZone,
   };
 }

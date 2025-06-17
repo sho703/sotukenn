@@ -1,11 +1,11 @@
 "use client";
 
-import GameHeader from "./components/GameHeader";
+import { useMahjongDeal } from "./hooks/useMahjongDeal";
 import MahjongGrid from "./components/MahjongGrid";
 import HandZone from "./components/HandZone";
-import DoraIndicator from "./components/DoraIndicator";
+import GameHeader from "./components/GameHeader";
 import ConfirmButton from "./components/ConfirmButton";
-import { useMahjongDeal } from "./hooks/useMahjongDeal";
+import DoraIndicator from "./components/DoraIndicator";
 
 export default function Page() {
   const {
@@ -13,29 +13,31 @@ export default function Page() {
     poolTiles,
     dora,
     reset,
-    moveToHand,
-    moveToPool,
-    reorderHand,
+    moveTile,
+    reorderZone,
   } = useMahjongDeal();
 
-  // ドラッグ開始: 牌の名前をDataTransferに保存
-  const handleTileDragStart = (
-    e: React.DragEvent<HTMLDivElement>,
-    tile: string
+  const handleTileDrop = (
+    tileId: string,
+    fromZone: "hand" | "pool",
+    toZone: "hand" | "pool",
+    atIdx?: number
   ) => {
-    e.dataTransfer.setData("text/plain", tile);
+    moveTile(tileId, fromZone, toZone, atIdx);
   };
 
-  // 配牌グリッドから手牌ゾーンへのドロップ
-  const handleHandDrop = (tile: string) => moveToHand(tile);
+  const handleReorder = (
+    zone: "hand" | "pool",
+    fromIdx: number,
+    toIdx: number
+  ) => {
+    reorderZone(zone, fromIdx, toIdx);
+  };
 
-  // 手牌から配牌プールに戻す（クリックで）
-  const handleHandTileRemove = (tile: string) => moveToPool(tile);
-
-  // 確定ボタン押下
   const handleConfirm = () => {
-    alert(`選択した13枚: ${handTiles.join(", ")}\nドラ: ${dora}`);
-    // ここでAPI送信や遷移など追加可能
+    alert(
+      `選択した13枚: ${handTiles.map((t) => t.type).join(", ")}\nドラ: ${dora}`
+    );
   };
 
   return (
@@ -47,24 +49,23 @@ export default function Page() {
           className="ml-auto text-sm px-3 py-1 border rounded bg-gray-100 hover:bg-gray-500 text-gray-600 transition-colors"
           onClick={reset}
         >
-          配牌リセット
+          手牌を全て戻す
         </button>
       </div>
       <section className="mb-6">
         <h2 className="mb-2 font-semibold">手牌ゾーン（13枚まで）</h2>
         <HandZone
           tiles={handTiles}
-          onTileDrop={handleHandDrop}
-          onTileDragStart={handleTileDragStart}
-          onTileRemove={handleHandTileRemove}
+          onTileDrop={handleTileDrop}
+          onReorder={handleReorder}
         />
       </section>
       <section className="mb-6">
-        <h2 className="mb-2 font-semibold">配牌（残り）</h2>
+        <h2 className="mb-2 font-semibold">配牌</h2>
         <MahjongGrid
           tiles={poolTiles}
-          onTileDragStart={handleTileDragStart}
-          onTileClick={moveToHand}
+          onTileDrop={handleTileDrop}
+          onReorder={handleReorder}
         />
       </section>
       <div className="flex justify-end">
