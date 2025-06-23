@@ -36,22 +36,19 @@ export function shuffle<T>(array: T[]): T[] {
 }
 
 // 牌を配る・ドラ表示を決定
-export function dealMahjong(): {
-  player1: string[];
-  player2: string[];
-  dora: string;
-  remaining: string[];
-} {
+export function dealMahjong() {
   // 牌生成→シャッフル
   const tiles = shuffle(generateTiles());
+  console.log('Generated and shuffled tiles:', tiles); // デバッグログ
 
-  // 34枚ずつ2人に配る
+  // 34枚を配る
   const player1 = tiles.slice(0, 34);
   const player2 = tiles.slice(34, 68);
+  console.log('Player 1 tiles:', player1); // デバッグログ
 
-  // 残り68枚 → 1枚をドラ表示
-  const dora = tiles[68];
-  const remaining = tiles.slice(69); // 残り67枚（今回は使わない）
+  // 1枚をドラ表示
+  const dora = tiles[34];
+  console.log('Dora tile:', dora); // デバッグログ
 
-  return { player1, player2, dora, remaining };
+  return { player1, player2, dora };
 }

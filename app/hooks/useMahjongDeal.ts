@@ -24,7 +24,9 @@ export function useMahjongDeal() {
   // 初回のみ牌配列をユニークID付きで生成
   useEffect(() => {
     const raw = dealMahjong(); // ここでは { player1: string[], dora: string } 型を仮定
+    console.log('Dealt tiles:', raw); // デバッグログ
     const playerTiles = convertToTiles(raw.player1);
+    console.log('Converted player tiles:', playerTiles); // デバッグログ
     const doraTile = { id: nextTileId(), type: raw.dora };
     setDeal({ player1: playerTiles, dora: doraTile });
     setHandTiles([]);
@@ -33,6 +35,7 @@ export function useMahjongDeal() {
 
   // 手牌ゾーンにある牌をすべて配牌ゾーンに戻す
   const reset = () => {
+    if (!deal) return;
     setPoolTiles([...poolTiles, ...handTiles]);
     setHandTiles([]);
   };
@@ -75,6 +78,7 @@ export function useMahjongDeal() {
     fromIdx: number,
     toIdx: number
   ) => {
+    if (!deal) return;
     const arr = zone === "hand" ? [...handTiles] : [...poolTiles];
     const [removed] = arr.splice(fromIdx, 1);
     arr.splice(toIdx, 0, removed);
@@ -82,13 +86,16 @@ export function useMahjongDeal() {
     else setPoolTiles(arr);
   };
 
-  return {
-    handTiles,
-    poolTiles,
+  const result = {
+    handTiles: handTiles || [],
+    poolTiles: poolTiles || [],
     dora: deal?.dora?.type ?? "",
     doraTile: deal?.dora,
     reset,
     moveTile,
     reorderZone,
   };
+
+  console.log('Hook result:', result); // デバッグログ
+  return result;
 }
