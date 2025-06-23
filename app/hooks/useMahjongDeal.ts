@@ -2,32 +2,28 @@
 
 import { useState, useEffect } from "react";
 import { dealMahjong } from "@/lib/mahjong";
+import { Tile, TileType, Zone, MahjongDealHook } from "@/types";
 
 // ユニークID生成ヘルパー（簡単なインクリメント、uuidでもOK）
 let tileIdCounter = 0;
-function nextTileId() {
+function nextTileId(): string {
   return `tile-${tileIdCounter++}`;
 }
 
-export type Tile = { id: string; type: string };
-
-function convertToTiles(tileTypes: string[]): Tile[] {
-  // 文字列配列 → ユニークID付きTile配列
+function convertToTiles(tileTypes: TileType[]): Tile[] {
   return tileTypes.map((type) => ({ id: nextTileId(), type }));
 }
 
-export function useMahjongDeal() {
+export function useMahjongDeal(): MahjongDealHook {
   const [deal, setDeal] = useState<{ player1: Tile[]; dora: Tile } | null>(null);
   const [handTiles, setHandTiles] = useState<Tile[]>([]);
   const [poolTiles, setPoolTiles] = useState<Tile[]>([]);
 
   // 初回のみ牌配列をユニークID付きで生成
   useEffect(() => {
-    const raw = dealMahjong(); // ここでは { player1: string[], dora: string } 型を仮定
-    console.log('Dealt tiles:', raw); // デバッグログ
-    const playerTiles = convertToTiles(raw.player1);
-    console.log('Converted player tiles:', playerTiles); // デバッグログ
-    const doraTile = { id: nextTileId(), type: raw.dora };
+    const raw = dealMahjong();
+    const playerTiles = convertToTiles(raw.player1 as TileType[]);
+    const doraTile = { id: nextTileId(), type: raw.dora as TileType };
     setDeal({ player1: playerTiles, dora: doraTile });
     setHandTiles([]);
     setPoolTiles(playerTiles);
@@ -43,8 +39,8 @@ export function useMahjongDeal() {
   // ゾーン間移動
   const moveTile = (
     tileId: string,
-    fromZone: "hand" | "pool",
-    toZone: "hand" | "pool",
+    fromZone: Zone,
+    toZone: Zone,
     atIdx?: number
   ) => {
     if (!deal) return;
@@ -74,7 +70,7 @@ export function useMahjongDeal() {
 
   // ゾーン内並び替え
   const reorderZone = (
-    zone: "hand" | "pool",
+    zone: Zone,
     fromIdx: number,
     toIdx: number
   ) => {
@@ -86,16 +82,13 @@ export function useMahjongDeal() {
     else setPoolTiles(arr);
   };
 
-  const result = {
+  return {
     handTiles: handTiles || [],
     poolTiles: poolTiles || [],
     dora: deal?.dora?.type ?? "",
-    doraTile: deal?.dora,
+    doraTile: deal?.dora ?? null,
     reset,
     moveTile,
     reorderZone,
   };
-
-  console.log('Hook result:', result); // デバッグログ
-  return result;
 }

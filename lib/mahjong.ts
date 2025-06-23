@@ -1,18 +1,20 @@
 // 麻雀牌を文字列型で表現 & シャッフル・配布・ドラ決定
 
+import { TileType } from "@/types";
+
 // 牌の種類（萬子、筒子、索子、字牌）
-const suits = ['m', 'p', 's'];
-const honors = ['東', '南', '西', '北', '白', '発', '中'];
+const suits = ['m', 'p', 's'] as const;
+const honors = ['東', '南', '西', '北', '白', '発', '中'] as const;
 
 // 牌一覧（全136枚）
-export function generateTiles(): string[] {
-  const tiles: string[] = [];
+export function generateTiles(): TileType[] {
+  const tiles: TileType[] = [];
 
   // 萬子, 筒子, 索子（1-9 各4枚）
   for (const suit of suits) {
     for (let num = 1; num <= 9; num++) {
       for (let i = 0; i < 4; i++) {
-        tiles.push(`${num}${suit}`);
+        tiles.push(`${num}${suit}` as TileType);
       }
     }
   }
@@ -36,19 +38,18 @@ export function shuffle<T>(array: T[]): T[] {
 }
 
 // 牌を配る・ドラ表示を決定
-export function dealMahjong() {
+export function dealMahjong(): {
+  player1: TileType[];
+  dora: TileType;
+} {
   // 牌生成→シャッフル
   const tiles = shuffle(generateTiles());
-  console.log('Generated and shuffled tiles:', tiles); // デバッグログ
 
   // 34枚を配る
   const player1 = tiles.slice(0, 34);
-  const player2 = tiles.slice(34, 68);
-  console.log('Player 1 tiles:', player1); // デバッグログ
 
   // 1枚をドラ表示
   const dora = tiles[34];
-  console.log('Dora tile:', dora); // デバッグログ
 
-  return { player1, player2, dora };
+  return { player1, dora };
 }
