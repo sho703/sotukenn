@@ -7,6 +7,8 @@ import { MahjongGrid } from './mahjong-grid';
 import { MahjongTile } from './mahjong-tile';
 import { DoraIndicator } from './dora-indicator';
 import { Tile } from './types';
+import { TenpaiPattern } from '@/types';
+import { GameHeader } from './game-header';
 
 interface Props {
   handTiles: Tile[];
@@ -14,10 +16,29 @@ interface Props {
   dora: string;
   moveTile: (tileId: string, fromZone: "hand" | "pool", toZone: "hand" | "pool", atIdx?: number) => void;
   reorderZone: (zone: "hand" | "pool", fromIdx: number, toIdx: number) => void;
+  dealTiles: () => void;
+  reset: () => void;
+  analyzeTenpai: () => void;
+  isAnalyzing: boolean;
+  hasDealt: boolean;
+  error: string | null;
+  suggestions: TenpaiPattern[] | null;
 }
 
-export function GameBoard({ handTiles, poolTiles, dora, moveTile, reorderZone }: Props) {
-  console.log('GameBoard props:', { handTiles, poolTiles, dora }); // デバッグログ
+export function GameBoard({
+  handTiles,
+  poolTiles,
+  dora,
+  moveTile,
+  reorderZone,
+  dealTiles,
+  reset,
+  analyzeTenpai,
+  isAnalyzing,
+  hasDealt,
+  error,
+  suggestions
+}: Props) {
   const [activeTile, setActiveTile] = useState<Tile | null>(null);
   const [activeZone, setActiveZone] = useState<"hand" | "pool" | null>(null);
 
@@ -75,32 +96,91 @@ export function GameBoard({ handTiles, poolTiles, dora, moveTile, reorderZone }:
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="space-y-6">
-        <section>
-          <h2 className="mb-2 font-semibold">手牌ゾーン（13枚まで）</h2>
-          <HandZone
-            tiles={handTiles}
-            onTileDrop={moveTile}
-            onReorder={reorderZone}
-          />
-        </section>
+      <div className="container mx-auto p-4">
+        <GameHeader
+          onDeal={dealTiles}
+          onReset={reset}
+          onAnalyze={analyzeTenpai}
+          isAnalyzing={isAnalyzing}
+          hasDealt={hasDealt}
+        />
+        <div className="space-y-6">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
+              {error}
+            </div>
+          )}
 
-        <section>
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="font-semibold">配牌</h2>
-            <DoraIndicator dora={dora} />
-          </div>
-          <MahjongGrid
-            tiles={poolTiles}
-            onTileDrop={moveTile}
-            onReorder={reorderZone}
-          />
-        </section>
+          <section>
+            <h2 className="mb-2 font-semibold">手牌ゾーン（13枚まで）</h2>
+            <HandZone
+              tiles={handTiles}
+              onTileDrop={moveTile}
+              onReorder={reorderZone}
+            />
+          </section>
+
+          <section>
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="font-semibold">配牌</h2>
+              <DoraIndicator dora={dora} />
+            </div>
+            <MahjongGrid
+              tiles={poolTiles}
+              onTileDrop={moveTile}
+              onReorder={reorderZone}
+            />
+          </section>
+
+          {suggestions && suggestions.length > 0 && (
+            <section className="mt-8">
+              <h2 className="text-xl font-bold mb-4">聴牌形提案</h2>
+              <div className="space-y-6">
+                {suggestions.map((pattern, patternIndex) => (
+                  <div key={patternIndex} className="bg-white p-4 rounded-lg shadow">
+                    <h3 className="font-semibold mb-2">提案 {patternIndex + 1}</h3>
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">手牌</p>
+                        <div className="flex flex-wrap gap-2">
+                          {pattern.tiles.map((tile, index) => (
+                            <div key={index} className="bg-gray-100 px-2 py-1 rounded">
+                              {tile}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">待ち牌と成立する役</p>
+                        <div className="space-y-2">
+                          {pattern.waitingTiles.map((wait, waitIndex) => (
+                            <div key={waitIndex} className="flex items-start gap-2">
+                              <div className="bg-blue-100 px-2 py-1 rounded">
+                                {wait.tile}
+                              </div>
+                              <div className="flex flex-wrap gap-1">
+                                {wait.yaku.map((yaku, yakuIndex) => (
+                                  <span key={yakuIndex} className="bg-green-100 px-2 py-1 rounded text-sm">
+                                    {yaku}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+
+        <DragOverlay>
+          {activeTile ? <MahjongTile tile={activeTile} selected={activeZone === "hand"} index={0} /> : null}
+        </DragOverlay>
       </div>
-
-      <DragOverlay>
-        {activeTile ? <MahjongTile tile={activeTile} selected={activeZone === "hand"} index={0} /> : null}
-      </DragOverlay>
     </DndContext>
   );
 } 

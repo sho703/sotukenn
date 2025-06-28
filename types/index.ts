@@ -1,5 +1,5 @@
 // 麻雀牌の種類を表す型
-export type TileType = `${number}${'m' | 'p' | 's'}` | '東' | '南' | '西' | '北' | '白' | '発' | '中';
+export type TileType = string; // 例: "1m", "2p", "3s", "1z"
 
 // 麻雀牌を表す型
 export interface Tile {
@@ -16,6 +16,10 @@ export interface MahjongDealState {
   poolTiles: Tile[];
   dora: TileType;
   doraTile: Tile | null;
+  suggestions: TenpaiPattern[] | null;
+  isAnalyzing: boolean;
+  hasDealt: boolean;
+  error: string | null;
 }
 
 // 麻雀の操作を表す型
@@ -23,7 +27,34 @@ export interface MahjongActions {
   reset: () => void;
   moveTile: (tileId: string, fromZone: Zone, toZone: Zone, atIdx?: number) => void;
   reorderZone: (zone: Zone, fromIdx: number, toIdx: number) => void;
+  analyzeTenpai: () => Promise<void>;
 }
 
 // useMahjongDealフックの戻り値の型
-export type MahjongDealHook = MahjongDealState & MahjongActions; 
+export interface MahjongDealHook extends MahjongDealState {
+  reset: () => void;
+  moveTile: (tileId: string, fromZone: Zone, toZone: Zone, atIdx?: number) => void;
+  reorderZone: (zone: Zone, fromIdx: number, toIdx: number) => void;
+  analyzeTenpai: () => Promise<void>;
+  dealTiles: () => void;
+}
+
+// Tenpai Analysis Types
+export interface WaitingTile {
+  tile: TileType;
+  yaku: string[];
+}
+
+export interface TenpaiPattern {
+  tiles: TileType[];
+  waitingTiles: WaitingTile[];
+}
+
+export interface TenpaiSuggestionResponse {
+  patterns: TenpaiPattern[];
+}
+
+export interface TenpaiSuggestionRequest {
+  tiles: TileType[];
+  handTiles: TileType[];
+} 

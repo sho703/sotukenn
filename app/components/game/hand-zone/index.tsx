@@ -12,7 +12,6 @@ interface Props {
 }
 
 export function HandZone({ tiles = [], onTileDrop, onReorder }: Props) {
-  console.log('HandZone tiles:', tiles); // デバッグログ
   const { setNodeRef } = useDroppable({
     id: 'hand',
   });

@@ -19,7 +19,7 @@ export function MahjongTile({ tile, selected, index }: Props) {
     setNodeRef,
     transform,
     transition,
-  } = useSortable({ 
+  } = useSortable({
     id: tile.id,
     data: {
       index,

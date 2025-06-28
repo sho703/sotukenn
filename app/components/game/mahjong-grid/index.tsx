@@ -12,7 +12,6 @@ interface Props {
 }
 
 export function MahjongGrid({ tiles = [], onTileDrop, onReorder }: Props) {
-  console.log('MahjongGrid tiles:', tiles); // デバッグログ
   const { setNodeRef } = useDroppable({
     id: 'pool',
   });

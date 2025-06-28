@@ -1,10 +1,41 @@
-export function GameHeader() {
+'use client';
+
+import { Button } from "@/components/ui/button";
+
+interface Props {
+  onDeal: () => void;
+  onReset: () => void;
+  onAnalyze: () => void;
+  isAnalyzing: boolean;
+  hasDealt: boolean; // 配牌が行われたかどうか
+}
+
+export function GameHeader({ onDeal, onReset, onAnalyze, isAnalyzing, hasDealt }: Props) {
   return (
-    <header className="w-full flex flex-col items-center justify-center py-4 mb-4 bg-gray-50 border-b">
-      <h1 className="text-2xl font-bold mb-1 text-gray-600">麻雀MVP - 配牌選択デモ</h1>
-      <p className="text-gray-600 text-sm">
-        グリッドの牌から手牌ゾーンに13枚ドラッグ＆ドロップしてください。ドラも同時に表示されます。
-      </p>
-    </header>
+    <div className="flex justify-between items-center mb-6">
+      <h1 className="text-2xl font-bold">麻雀配牌練習</h1>
+      <div className="space-x-2">
+        <Button
+          onClick={onDeal}
+          variant="outline"
+          disabled={isAnalyzing}
+        >
+          配牌する
+        </Button>
+        <Button
+          onClick={onReset}
+          variant="outline"
+          disabled={!hasDealt || isAnalyzing}
+        >
+          リセット
+        </Button>
+        <Button
+          onClick={onAnalyze}
+          disabled={!hasDealt || isAnalyzing}
+        >
+          {isAnalyzing ? '分析中...' : '聴牌形提案'}
+        </Button>
+      </div>
+    </div>
   );
 } 
