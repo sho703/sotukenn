@@ -6,6 +6,11 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 // 麻雀牌を日本語表記に変換するヘルパー
 function tileToJapanese(tile: TileType): string {
+  // 字牌が直接日本語で来た場合はそのまま返す
+  if (tile.length === 1 || ['東', '南', '西', '北', '白', '發', '中'].includes(tile)) {
+    return tile;
+  }
+
   const number = tile.charAt(0);
   const suit = tile.charAt(1);
 
@@ -64,7 +69,7 @@ export async function analyzeTenpai(
   }
 
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
+    model: "gemini-1.5-pro",
     generationConfig: {
       temperature: 0.1,
       maxOutputTokens: 2048,
@@ -102,6 +107,7 @@ export async function analyzeTenpai(
 
   try {
     const result = await model.generateContent(prompt);
+    console.log(prompt);
     const response = await result.response;
     const text = response.text();
 
