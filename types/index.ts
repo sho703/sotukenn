@@ -5,6 +5,7 @@ export type TileType = string; // 例: "1m", "2p", "3s", "1z"
 export interface Tile {
   id: string;
   type: TileType;
+  imagePath: string;  // 牌の画像パスを追加
 }
 
 // ゾーンの種類を表す型

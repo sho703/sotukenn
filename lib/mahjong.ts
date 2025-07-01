@@ -6,6 +6,66 @@ import { TileType } from "@/types";
 const suits = ['m', 'p', 's'] as const;
 const honors = ['東', '南', '西', '北', '白', '発', '中'] as const;
 
+// 牌の画像パスを生成する関数
+export function getTileImagePath(type: TileType): string {
+  try {
+    // 字牌の場合（1z-7zの形式）
+    if (type.endsWith('z')) {
+      const number = parseInt(type.charAt(0));
+      const honorMap: Record<number, string> = {
+        1: 'ton',   // 東
+        2: 'nan',   // 南
+        3: 'sha',   // 西
+        4: 'pei',   // 北
+        5: 'haku',  // 白
+        6: 'hatsu', // 発
+        7: 'chun'   // 中
+      };
+      if (!honorMap[number]) {
+        console.error(`Invalid honor tile number: ${number}`);
+        return '/images/tiles/back.gif'; // フォールバック画像
+      }
+      return `/images/tiles/${honorMap[number]}.gif`;
+    }
+    // 直接漢字で指定された字牌の場合
+    else if (type.length === 1 || ['東', '南', '西', '北', '白', '発', '中'].includes(type)) {
+      const honorMap: Record<string, string> = {
+        '東': 'ton',
+        '南': 'nan',
+        '西': 'sha',
+        '北': 'pei',
+        '白': 'haku',
+        '発': 'hatsu',
+        '中': 'chun'
+      };
+      if (!honorMap[type]) {
+        console.error(`Invalid honor tile type: ${type}`);
+        return '/images/tiles/back.gif'; // フォールバック画像
+      }
+      return `/images/tiles/${honorMap[type]}.gif`;
+    }
+    // 数牌の場合
+    else {
+      const number = type.charAt(0);
+      const suit = type.charAt(1);
+      const suitMap: Record<string, string> = {
+        'm': 'man',
+        'p': 'pin',
+        's': 'sou',
+        't': 'pin'  // 'p'の代替表記として't'を追加
+      };
+      if (!suitMap[suit]) {
+        console.error(`Invalid suit: ${suit} for tile type: ${type}`);
+        return '/images/tiles/back.gif'; // フォールバック画像
+      }
+      return `/images/tiles/${number}${suitMap[suit]}.gif`;
+    }
+  } catch (error) {
+    console.error(`Error processing tile type: ${type}`, error);
+    return '/images/tiles/back.gif'; // フォールバック画像
+  }
+}
+
 // 牌一覧（全136枚）
 export function generateTiles(): TileType[] {
   const tiles: TileType[] = [];

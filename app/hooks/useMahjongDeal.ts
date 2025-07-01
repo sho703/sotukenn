@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { dealMahjong } from "@/lib/mahjong";
+import { dealMahjong, getTileImagePath } from "@/lib/mahjong";
 import { Tile, TileType, Zone, MahjongDealHook, TenpaiPattern } from "@/types";
 
 // ユニークID生成ヘルパー（簡単なインクリメント、uuidでもOK）
@@ -11,7 +11,11 @@ function nextTileId(): string {
 }
 
 function convertToTiles(tileTypes: TileType[]): Tile[] {
-  return tileTypes.map((type) => ({ id: nextTileId(), type }));
+  return tileTypes.map((type) => ({
+    id: nextTileId(),
+    type,
+    imagePath: getTileImagePath(type)
+  }));
 }
 
 // 牌を種類でソート
@@ -62,7 +66,11 @@ export function useMahjongDeal(): MahjongDealHook {
     setError(null);
     const raw = dealMahjong();
     const playerTiles = convertToTiles(raw.player1 as TileType[]);
-    const doraTile = { id: nextTileId(), type: raw.dora as TileType };
+    const doraTile = {
+      id: nextTileId(),
+      type: raw.dora as TileType,
+      imagePath: getTileImagePath(raw.dora as TileType)
+    };
     setDeal({ player1: playerTiles, dora: doraTile });
     setHandTiles([]);
     setPoolTiles(sortTiles(playerTiles));

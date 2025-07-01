@@ -33,6 +33,7 @@ export function HandZone({ tiles = [], onTileDrop, onReorder }: Props) {
             tile={tile}
             selected
             index={index}
+            priority={true}
           />
         ))}
       </SortableContext>

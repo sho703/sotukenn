@@ -9,6 +9,8 @@ import { DoraIndicator } from './dora-indicator';
 import { Tile } from './types';
 import { TenpaiPattern } from '@/types';
 import { GameHeader } from './game-header';
+import Image from 'next/image';
+import { getTileImagePath } from '@/lib/mahjong';
 
 interface Props {
   handTiles: Tile[];
@@ -113,11 +115,13 @@ export function GameBoard({
 
           <section>
             <h2 className="mb-2 font-semibold">手牌ゾーン（13枚まで）</h2>
-            <HandZone
-              tiles={handTiles}
-              onTileDrop={moveTile}
-              onReorder={reorderZone}
-            />
+            <div className="max-w-full overflow-x-auto">
+              <HandZone
+                tiles={handTiles}
+                onTileDrop={moveTile}
+                onReorder={reorderZone}
+              />
+            </div>
           </section>
 
           <section>
@@ -125,11 +129,13 @@ export function GameBoard({
               <h2 className="font-semibold">配牌</h2>
               <DoraIndicator dora={dora} />
             </div>
-            <MahjongGrid
-              tiles={poolTiles}
-              onTileDrop={moveTile}
-              onReorder={reorderZone}
-            />
+            <div className="max-w-full overflow-x-auto">
+              <MahjongGrid
+                tiles={poolTiles}
+                onTileDrop={moveTile}
+                onReorder={reorderZone}
+              />
+            </div>
           </section>
 
           {suggestions && suggestions.length > 0 && (
@@ -144,8 +150,19 @@ export function GameBoard({
                         <p className="text-sm text-gray-600 mb-1">手牌</p>
                         <div className="flex flex-wrap gap-2">
                           {pattern.tiles.map((tile, index) => (
-                            <div key={index} className="bg-gray-100 px-2 py-1 rounded">
-                              {tile}
+                            <div key={index} className="inline-flex w-10 h-14 sm:w-12 sm:h-16 md:w-14 md:h-20">
+                              <div className="relative w-full h-full flex items-center justify-center">
+                                <div className="relative w-[85%] h-[85%]">
+                                  <Image
+                                    src={getTileImagePath(tile)}
+                                    alt={tile}
+                                    fill
+                                    sizes="(max-width: 640px) 40px, (max-width: 768px) 48px, 56px"
+                                    className="object-contain"
+                                    priority={false}
+                                  />
+                                </div>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -155,8 +172,19 @@ export function GameBoard({
                         <div className="space-y-2">
                           {pattern.waitingTiles.map((wait, waitIndex) => (
                             <div key={waitIndex} className="flex items-start gap-2">
-                              <div className="bg-blue-100 px-2 py-1 rounded">
-                                {wait.tile}
+                              <div className="inline-flex w-10 h-14 sm:w-12 sm:h-16 md:w-14 md:h-20">
+                                <div className="relative w-full h-full flex items-center justify-center">
+                                  <div className="relative w-[85%] h-[85%]">
+                                    <Image
+                                      src={getTileImagePath(wait.tile)}
+                                      alt={wait.tile}
+                                      fill
+                                      sizes="(max-width: 640px) 40px, (max-width: 768px) 48px, 56px"
+                                      className="object-contain"
+                                      priority={false}
+                                    />
+                                  </div>
+                                </div>
                               </div>
                               <div className="flex flex-wrap gap-1">
                                 {wait.yaku.map((yaku, yakuIndex) => (

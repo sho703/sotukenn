@@ -19,7 +19,7 @@ export function MahjongGrid({ tiles = [], onTileDrop, onReorder }: Props) {
   return (
     <div
       ref={setNodeRef}
-      className="grid grid-cols-8 gap-2 p-4 bg-gray-100 rounded"
+      className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-2 p-4 bg-gray-100 rounded"
     >
       <SortableContext
         id="pool"
@@ -31,6 +31,7 @@ export function MahjongGrid({ tiles = [], onTileDrop, onReorder }: Props) {
             key={tile.id}
             tile={tile}
             index={index}
+            priority={false}
           />
         ))}
       </SortableContext>

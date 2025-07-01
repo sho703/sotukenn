@@ -69,7 +69,7 @@ export async function analyzeTenpai(
   }
 
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-pro",
+    model: "gemini-1.5-flash",
     generationConfig: {
       temperature: 0.1,
       maxOutputTokens: 2048,
@@ -88,10 +88,10 @@ export async function analyzeTenpai(
 {
   "patterns": [
     {
-      "tiles": ["1m", "2m", "3m", ...],  // 手牌13枚
+      "tiles": ["1m", "2m", "3m", ...],  // 手牌13枚（m=萬子、p=筒子、s=索子、z=字牌）
       "waitingTiles": [
         {
-          "tile": "1m",  // 待ち牌
+          "tile": "1m",  // 待ち牌（m=萬子、p=筒子、s=索子、z=字牌）
           "yaku": ["タンヤオ", "平和"]  // 成立する役のリスト
         }
       ]
@@ -100,6 +100,11 @@ export async function analyzeTenpai(
 }
 
 注意：
+- 牌の表記は以下のルールに従ってください：
+  - 萬子: 1m-9m
+  - 筒子: 1p-9p
+  - 索子: 1s-9s
+  - 字牌: 1z-7z（1=東、2=南、3=西、4=北、5=白、6=發、7=中）
 - 役は ${VALID_YAKU.join(', ')} の中から選んでください
 - 点数の高い順に最大3つまで提案してください
 - 待ち牌ごとに成立する役をすべて列挙してください
@@ -107,7 +112,6 @@ export async function analyzeTenpai(
 
   try {
     const result = await model.generateContent(prompt);
-    console.log(prompt);
     const response = await result.response;
     const text = response.text();
 
