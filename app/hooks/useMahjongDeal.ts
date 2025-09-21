@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { dealMahjong, getTileImagePath, shuffle, sortTiles } from "@/lib/mahjong";
+import { dealMahjong, getTileImagePath, shuffle, sortTiles } from "@/app/lib/mahjong";
 import {
   Tile,
   TileType,

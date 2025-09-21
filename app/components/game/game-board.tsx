@@ -10,7 +10,7 @@ import { Tile } from './types';
 import { TenpaiPattern, WinningInfo } from '@/types';
 import { GameHeader } from './game-header';
 import Image from 'next/image';
-import { getTileImagePath } from '@/lib/mahjong';
+import { getTileImagePath } from '@/app/lib/mahjong';
 
 interface Props {
   // 基本状態

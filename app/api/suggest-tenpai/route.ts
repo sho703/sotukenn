@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { TenpaiSuggestionRequest } from '@/types';
-import { analyzeTenpai } from '@/lib/gemini';
 
 export async function POST(req: Request) {
   try {
@@ -21,8 +20,20 @@ export async function POST(req: Request) {
       );
     }
 
-    // Gemini APIを使用して聴牌形を分析
-    const suggestions = await analyzeTenpai(body.tiles);
+    // シンプルな聴牌形提案（現在はダミーデータ）
+    const suggestions = {
+      patterns: [
+        {
+          tiles: body.handTiles.slice(0, 13),
+          waitingTiles: [
+            {
+              tile: "1m",
+              yaku: ["タンヤオ"]
+            }
+          ]
+        }
+      ]
+    };
 
     return NextResponse.json(suggestions);
   } catch (error) {
