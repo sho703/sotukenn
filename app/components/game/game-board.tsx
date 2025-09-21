@@ -7,7 +7,7 @@ import { MahjongGrid } from './mahjong-grid';
 import { MahjongTile } from './mahjong-tile';
 import { DoraIndicator } from './dora-indicator';
 import { Tile } from './types';
-import { TenpaiPattern } from '@/types';
+import { TenpaiPattern, WinningInfo } from '@/types';
 import { GameHeader } from './game-header';
 import Image from 'next/image';
 import { getTileImagePath } from '@/lib/mahjong';
@@ -27,14 +27,7 @@ interface Props {
   isProcessingWin: boolean;
 
   // 和了情報
-  winningInfo?: {
-    winner: 'player' | 'cpu';
-    points: number;
-    yaku: string[];
-    winningTile: string;
-    han?: number;
-    fu?: number;
-  } | null;
+  winningInfo: WinningInfo | null;
 
   // 操作
   moveTile: (tileId: string, fromZone: "hand" | "pool", toZone: "hand" | "pool", atIdx?: number) => void;
@@ -222,7 +215,7 @@ export function GameBoard({
             <>
               {/* 手番表示 */}
               <div className={`p-4 rounded-lg text-center font-semibold ${isProcessingWin ? 'bg-yellow-100 text-yellow-800' :
-                  isPlayerTurn ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                isPlayerTurn ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
                 }`}>
                 {isProcessingWin ? '和了判定中...' :
                   isPlayerTurn ? 'あなたの番です' : 'CPUの番です'}

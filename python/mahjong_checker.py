@@ -62,8 +62,8 @@ def get_win_tile_index(last_tile, tiles_136):
         base = 36 + (int(last_tile[0]) - 1) * 4
     elif last_tile.endswith('s'):
         base = 72 + (int(last_tile[0]) - 1) * 4
-    elif last_tile in ['東', '南', '西', '北', '白', '發', '中']:
-        honor_map = {'東': 0, '南': 1, '西': 2, '北': 3, '白': 4, '發': 5, '中': 6}
+    elif last_tile in ['東', '南', '西', '北', '白', '發', '发', '中']:
+        honor_map = {'東': 0, '南': 1, '西': 2, '北': 3, '白': 4, '發': 5, '发': 5, '中': 6}
         base = 108 + honor_map[last_tile] * 4
     elif last_tile.endswith('z'):
         base = 108 + (int(last_tile[0]) - 1) * 4
@@ -130,50 +130,11 @@ def check_win(tiles, last_tile, dora):
                 "error": result.error
             }
         
-        # 役名を日本語に変換
-        yaku_translation = {
-            'Pinfu': '平和',
-            'Ittsu': '一気通貫', 
-            'Tanyao': '断ヤオ九',
-            'Yakuhai': '役牌',
-            'Iipeikou': '一盃口',
-            'Sanshoku': '三色同順',
-            'Toitoi': '対々和',
-            'Sanankou': '三暗刻',
-            'Sankantsu': '三槓子',
-            'Chanta': '混全帯ヤオ九',
-            'Junchan': '純全帯ヤオ九',
-            'Ryanpeikou': '二盃口',
-            'Shousangen': '小三元',
-            'Honroutou': '混老頭',
-            'Chinitsu': '清一色',
-            'Honitsu': '混一色',
-            'Riichi': 'リーチ',
-            'Ippatsu': '一発',
-            'Tsumo': 'ツモ',
-            'Haitei': '海底摸月',
-            'Houtei': '河底撈魚',
-            'Rinshan': '嶺上開花',
-            'Chankan': '槍槓',
-            'Double_riichi': 'ダブルリーチ',
-            'Tenhou': '天和',
-            'Chiihou': '地和',
-            'Daisangen': '大三元',
-            'Suuankou': '四暗刻',
-            'Tsuuiisou': '字一色',
-            'Ryuuiisou': '緑一色',
-            'Chinroutou': '清老頭',
-            'Kokushi': '国士無双',
-            'Suukantsu': '四槓子',
-            'Chuurenpoutou': '九蓮宝燈',
-            'Renhou': '人和'
-        }
-        
+        # 役名をそのまま使用
         yaku_names = []
         if result.yaku:
             for yaku_item in result.yaku:
-                japanese_name = yaku_translation.get(yaku_item.name, yaku_item.name)
-                yaku_names.append(japanese_name)
+                yaku_names.append(yaku_item.name)
         
         return {
             "isWinning": True,

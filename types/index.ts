@@ -21,6 +21,16 @@ export interface CpuState {
   winningTile: Tile;      // 和了牌
 }
 
+// 和了情報を表す型
+export interface WinningInfo {
+  winner: 'player' | 'cpu';
+  points: number;
+  yaku: string[];
+  winningTile: string;
+  han?: number;
+  fu?: number;
+}
+
 // 麻雀の配牌状態を表す型
 export interface MahjongDealState {
   handTiles: Tile[];      // プレイヤーの手牌（選択中/選択済みの13枚）
@@ -37,6 +47,7 @@ export interface MahjongDealState {
   cpuDiscards: Tile[];    // CPUの捨て牌履歴
   isPlayerTurn: boolean;  // プレイヤーの手番かどうか
   isProcessingWin: boolean; // 和了判定処理中かどうか
+  winningInfo: WinningInfo | null; // 和了情報
 }
 
 // 麻雀の操作を表す型

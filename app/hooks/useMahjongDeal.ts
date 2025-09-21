@@ -9,7 +9,8 @@ import {
   MahjongDealHook,
   TenpaiPattern,
   GamePhase,
-  CpuState
+  CpuState,
+  WinningInfo
 } from "@/types";
 
 // ユニークID生成ヘルパー（簡単なインクリメント、uuidでもOK）
@@ -72,14 +73,7 @@ export function useMahjongDeal(): MahjongDealHook {
   const [isProcessingWin, setIsProcessingWin] = useState(false);
 
   // 和了情報
-  const [winningInfo, setWinningInfo] = useState<{
-    winner: 'player' | 'cpu';
-    points: number;
-    yaku: string[];
-    winningTile: string;
-    han?: number;
-    fu?: number;
-  } | null>(null);
+  const [winningInfo, setWinningInfo] = useState<WinningInfo | null>(null);
 
   // 分析状態
   const [suggestions, setSuggestions] = useState<TenpaiPattern[] | null>(null);
@@ -218,21 +212,8 @@ export function useMahjongDeal(): MahjongDealHook {
 
   // プレイヤーの捨て牌を処理
   const discardTile = async (tile: Tile) => {
-    console.log('discardTile called:', {
-      isPlayerTurn,
-      gamePhase,
-      cpuState: !!cpuState,
-      isProcessingWin,
-      tileType: tile.type
-    });
-
+    // 前提条件チェック
     if (!isPlayerTurn || gamePhase !== 'playing' || !cpuState || isProcessingWin) {
-      console.log('discardTile blocked:', {
-        isPlayerTurn,
-        gamePhase,
-        hasCpuState: !!cpuState,
-        isProcessingWin
-      });
       return;
     }
 
@@ -246,7 +227,6 @@ export function useMahjongDeal(): MahjongDealHook {
 
     // CPUの和了判定（ロン）
     if (tile.type === cpuState.winningTile.type) {
-      // CPUの手牌 + プレイヤーの捨て牌でPython mahjongライブラリを使って正確な和了判定
       try {
         const response = await fetch('/api/check-win', {
           method: 'POST',
@@ -270,11 +250,12 @@ export function useMahjongDeal(): MahjongDealHook {
               fu: result.fu
             });
             setGamePhase('finished');
+            setIsProcessingWin(false);
             return;
           }
         }
       } catch (err) {
-        console.log('CPU和了判定エラー:', err);
+        console.error('CPU和了判定エラー:', err);
       }
 
       // ライブラリでの判定に失敗した場合、ランダムで和了
@@ -306,19 +287,6 @@ export function useMahjongDeal(): MahjongDealHook {
 
     // プレイヤーの和了判定（ロン）
     try {
-      console.log('プレイヤー和了判定開始:', {
-        playerHandTiles: handTiles.map(t => t.type),
-        cpuDiscardTile: cpuDiscard.type,
-        dora: dora
-      });
-
-      // 詳細な手牌をログに出力
-      console.log('プレイヤーの手牌詳細:', handTiles.map(t => t.type).sort());
-
-      // 簡易聴牌チェック：CPUの捨て牌で直接和了判定を実行
-      console.log(`CPUの捨て牌「${cpuDiscard.type}」で和了判定を実行します。`);
-
-      // 手牌13枚 + CPUの捨て牌1枚 = 14枚で和了判定
       const response = await fetch('/api/check-win', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -336,10 +304,8 @@ export function useMahjongDeal(): MahjongDealHook {
       }
 
       const result = await response.json();
-      console.log('プレイヤー和了判定結果:', result);
 
       if (result.isWinning) {
-        console.log('和了！結果を設定します');
         setWinningInfo({
           winner: 'player',
           points: result.points || 1,
@@ -349,11 +315,8 @@ export function useMahjongDeal(): MahjongDealHook {
           fu: result.fu
         });
         setGamePhase('finished');
-      } else {
-        console.log('和了していません');
       }
 
-      // 和了判定完了、次の操作を可能にする
       setIsProcessingWin(false);
     } catch (err) {
       console.error('プレイヤー和了判定エラー:', err);

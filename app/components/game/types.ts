@@ -1,6 +1,7 @@
 export interface Tile {
   id: string;
   type: string;
+  imagePath: string;
 }
 
 export interface DragEndEvent {
