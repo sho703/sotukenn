@@ -4,7 +4,7 @@ import { TileType } from "@/types";
 
 // 牌の種類（萬子、筒子、索子、字牌）
 const suits = ['m', 'p', 's'] as const;
-const honors = ['東', '南', '西', '北', '白', '発', '中'] as const;
+const honors = ['東', '南', '西', '北', '白', '發', '中'] as const;
 
 // 牌の画像パスを生成する関数
 export function getTileImagePath(type: TileType): string {
@@ -28,14 +28,14 @@ export function getTileImagePath(type: TileType): string {
       return `/images/tiles/${honorMap[number]}.gif`;
     }
     // 直接漢字で指定された字牌の場合
-    else if (type.length === 1 || ['東', '南', '西', '北', '白', '発', '中'].includes(type)) {
+    else if (type.length === 1 || ['東', '南', '西', '北', '白', '發', '中'].includes(type)) {
       const honorMap: Record<string, string> = {
         '東': 'ton',
         '南': 'nan',
         '西': 'sha',
         '北': 'pei',
         '白': 'haku',
-        '発': 'hatsu',
+        '發': 'hatsu',
         '中': 'chun'
       };
       if (!honorMap[type]) {
@@ -150,3 +150,4 @@ export function sortTiles<T extends { type: TileType }>(tiles: T[]): T[] {
     return numA - numB;
   });
 }
+

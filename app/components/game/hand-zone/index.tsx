@@ -1,14 +1,47 @@
 'use client';
 
 import { useDroppable } from '@dnd-kit/core';
-import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
+import { SortableContext, horizontalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { MahjongTile } from '../mahjong-tile';
 import { Tile } from '../types';
 
 interface Props {
   tiles: Tile[];
   onTileDrop: (tileId: string, fromZone: "hand" | "pool", toZone: "hand" | "pool", atIdx?: number) => void;
-  onReorder: (zone: "hand" | "pool", fromIdx: number, toIdx: number) => void;
+  onReorder: (fromIdx: number, toIdx: number) => void;
+}
+
+// ソート可能な麻雀牌コンポーネント
+function SortableMahjongTile({ tile, index }: { tile: Tile; index: number }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({
+    id: tile.id,
+    data: {
+      type: 'tile',
+      index,
+    }
+  });
+
+  const style = {
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    transition,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <MahjongTile
+        tile={tile}
+        selected
+        index={index}
+        priority={true}
+      />
+    </div>
+  );
 }
 
 export function HandZone({ tiles = [], onTileDrop, onReorder }: Props) {
@@ -28,15 +61,13 @@ export function HandZone({ tiles = [], onTileDrop, onReorder }: Props) {
         strategy={horizontalListSortingStrategy}
       >
         {tiles.map((tile, index) => (
-          <MahjongTile
+          <SortableMahjongTile
             key={tile.id}
             tile={tile}
-            selected
             index={index}
-            priority={true}
           />
         ))}
       </SortableContext>
     </div>
   );
-} 
+}

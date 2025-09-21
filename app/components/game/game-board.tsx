@@ -13,36 +13,100 @@ import Image from 'next/image';
 import { getTileImagePath } from '@/lib/mahjong';
 
 interface Props {
+  // 基本状態
   handTiles: Tile[];
   poolTiles: Tile[];
   dora: string;
+  gamePhase: 'initial' | 'selecting' | 'playing' | 'finished';
+  error: string | null;
+
+  // 対局状態
+  playerDiscards: Tile[];
+  cpuDiscards: Tile[];
+  isPlayerTurn: boolean;
+  isProcessingWin: boolean;
+
+  // 和了情報
+  winningInfo?: {
+    winner: 'player' | 'cpu';
+    points: number;
+    yaku: string[];
+    winningTile: string;
+    han?: number;
+    fu?: number;
+  } | null;
+
+  // 操作
   moveTile: (tileId: string, fromZone: "hand" | "pool", toZone: "hand" | "pool", atIdx?: number) => void;
   reorderZone: (zone: "hand" | "pool", fromIdx: number, toIdx: number) => void;
   dealTiles: () => void;
   reset: () => void;
+  completeSelection: () => void;
   analyzeTenpai: () => void;
+  discardTile: (tile: Tile) => Promise<void>;
+
+  // 状態
   isAnalyzing: boolean;
   hasDealt: boolean;
-  error: string | null;
   suggestions: TenpaiPattern[] | null;
 }
 
 export function GameBoard({
+  // 基本状態
   handTiles,
   poolTiles,
   dora,
+  gamePhase,
+  error,
+
+  // 対局状態
+  playerDiscards,
+  cpuDiscards,
+  isPlayerTurn,
+  isProcessingWin,
+
+  // 和了情報
+  winningInfo,
+
+  // 操作
   moveTile,
   reorderZone,
   dealTiles,
   reset,
+  completeSelection,
   analyzeTenpai,
+  discardTile,
+
+  // 状態
   isAnalyzing,
   hasDealt,
-  error,
   suggestions
 }: Props) {
   const [activeTile, setActiveTile] = useState<Tile | null>(null);
   const [activeZone, setActiveZone] = useState<"hand" | "pool" | null>(null);
+
+  // 捨て牌履歴を6枚ずつ表示するヘルパー関数
+  const renderDiscardHistory = (discards: Tile[]) => {
+    const rows = [];
+    for (let i = 0; i < discards.length; i += 6) {
+      const rowTiles = discards.slice(i, i + 6);
+      rows.push(
+        <div key={i} className="flex gap-1 mb-1">
+          {rowTiles.map((tile, index) => (
+            <div key={tile.id} className="w-8 h-12">
+              <MahjongTile
+                tile={tile}
+                selected={false}
+                index={i + index}
+                priority={false}
+              />
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return rows;
+  };
 
   const sensors = useSensors(useSensor(PointerSensor, {
     activationConstraint: {
@@ -113,30 +177,223 @@ export function GameBoard({
             </div>
           )}
 
-          <section>
-            <h2 className="mb-2 font-semibold">手牌ゾーン（13枚まで）</h2>
-            <div className="max-w-full overflow-x-auto">
-              <HandZone
-                tiles={handTiles}
-                onTileDrop={moveTile}
-                onReorder={reorderZone}
-              />
-            </div>
-          </section>
+          {gamePhase === 'selecting' && (
+            <>
+              <section>
+                <div className="flex justify-between items-center mb-2">
+                  <h2 className="font-semibold">手牌選択（13枚を選んでください）</h2>
+                  <button
+                    onClick={completeSelection}
+                    disabled={handTiles.length !== 13}
+                    className={`px-4 py-2 rounded ${handTiles.length === 13
+                      ? 'bg-blue-500 text-white hover:bg-blue-600'
+                      : 'bg-gray-300 text-gray-500'
+                      }`}
+                  >
+                    選択完了 ({handTiles.length}/13枚)
+                  </button>
+                </div>
+                <div className="max-w-full overflow-x-auto">
+                  <HandZone
+                    tiles={handTiles}
+                    onTileDrop={moveTile}
+                    onReorder={(fromIdx, toIdx) => reorderZone('hand', fromIdx, toIdx)}
+                  />
+                </div>
+              </section>
 
-          <section>
-            <div className="flex justify-between items-center mb-2">
-              <h2 className="font-semibold">配牌</h2>
-              <DoraIndicator dora={dora} />
-            </div>
-            <div className="max-w-full overflow-x-auto">
-              <MahjongGrid
-                tiles={poolTiles}
-                onTileDrop={moveTile}
-                onReorder={reorderZone}
-              />
-            </div>
-          </section>
+              <section>
+                <div className="flex justify-between items-center mb-2">
+                  <h2 className="font-semibold">配牌</h2>
+                  <DoraIndicator dora={dora} />
+                </div>
+                <div className="max-w-full overflow-x-auto">
+                  <MahjongGrid
+                    tiles={poolTiles}
+                    onTileDrop={moveTile}
+                    onReorder={(fromIdx, toIdx) => reorderZone('pool', fromIdx, toIdx)}
+                  />
+                </div>
+              </section>
+            </>
+          )}
+
+          {gamePhase === 'playing' && (
+            <>
+              {/* 手番表示 */}
+              <div className={`p-4 rounded-lg text-center font-semibold ${isProcessingWin ? 'bg-yellow-100 text-yellow-800' :
+                  isPlayerTurn ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                }`}>
+                {isProcessingWin ? '和了判定中...' :
+                  isPlayerTurn ? 'あなたの番です' : 'CPUの番です'}
+              </div>
+
+              {/* CPU手牌 */}
+              <section>
+                <h2 className="mb-2 font-semibold">CPU手牌</h2>
+                <div className="flex gap-1 bg-gray-100 p-4 rounded-lg">
+                  {Array.from({ length: 13 }, (_, i) => (
+                    <div
+                      key={i}
+                      className="w-10 h-14 sm:w-12 sm:h-16 md:w-14 md:h-20 bg-gray-300 rounded border"
+                    />
+                  ))}
+                </div>
+              </section>
+
+              {/* 捨て牌履歴 */}
+              <div className="grid grid-cols-2 gap-4">
+                <section>
+                  <h2 className="mb-2 font-semibold">あなたの捨て牌</h2>
+                  <div className="bg-gray-50 p-4 rounded-lg min-h-20">
+                    {playerDiscards.length === 0 ? (
+                      <div className="text-gray-400 text-center">まだ捨て牌がありません</div>
+                    ) : (
+                      renderDiscardHistory(playerDiscards)
+                    )}
+                  </div>
+                </section>
+                <section>
+                  <h2 className="mb-2 font-semibold">CPUの捨て牌</h2>
+                  <div className="bg-gray-50 p-4 rounded-lg min-h-20">
+                    {cpuDiscards.length === 0 ? (
+                      <div className="text-gray-400 text-center">まだ捨て牌がありません</div>
+                    ) : (
+                      renderDiscardHistory(cpuDiscards)
+                    )}
+                  </div>
+                </section>
+              </div>
+
+              {/* プレイヤーの手牌 */}
+              <section>
+                <div className="flex justify-between items-center mb-2">
+                  <h2 className="font-semibold">あなたの手牌</h2>
+                  <DoraIndicator dora={dora} />
+                </div>
+                <div className="flex gap-2 bg-blue-50 p-4 rounded-lg">
+                  {handTiles.map((tile, index) => (
+                    <MahjongTile
+                      key={tile.id}
+                      tile={tile}
+                      selected
+                      index={index}
+                      priority={true}
+                    />
+                  ))}
+                </div>
+              </section>
+
+              {/* 選択可能な捨て牌 */}
+              <section>
+                <h2 className="mb-2 font-semibold">
+                  捨て牌を選択してください（{poolTiles.length}枚）
+                  {isProcessingWin ? <span className="text-yellow-500 ml-2">（和了判定中...）</span> :
+                    !isPlayerTurn && <span className="text-gray-500 ml-2">（CPUの番です）</span>}
+                </h2>
+                <div className="flex flex-wrap gap-2 bg-yellow-50 p-4 rounded-lg">
+                  {poolTiles.map((tile, index) => (
+                    <div
+                      key={tile.id}
+                      onClick={() => {
+                        if (isPlayerTurn && !isProcessingWin) {
+                          discardTile(tile);
+                        }
+                      }}
+                      className={`${isPlayerTurn && !isProcessingWin
+                        ? 'cursor-pointer hover:opacity-75 hover:scale-105 transition-all'
+                        : 'cursor-not-allowed opacity-50'
+                        }`}
+                    >
+                      <MahjongTile
+                        tile={tile}
+                        selected={false}
+                        index={index}
+                        priority={false}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </>
+          )}
+
+          {/* 和了表示 */}
+          {gamePhase === 'finished' && winningInfo && (
+            <section className="mt-4">
+              <div className={`p-6 rounded-lg text-center ${winningInfo.winner === 'player'
+                ? 'bg-blue-100 border-2 border-blue-300'
+                : 'bg-red-100 border-2 border-red-300'
+                }`}>
+                <h2 className="text-3xl font-bold mb-4">
+                  {winningInfo.winner === 'player' ? '🎉 あなたの和了！' : '😔 CPUの和了'}
+                </h2>
+
+                <div className="mb-4">
+                  <div className="text-xl font-semibold mb-2">
+                    {winningInfo.han && winningInfo.fu ?
+                      `${winningInfo.han}飜 ${winningInfo.fu}符 ${winningInfo.points}点` :
+                      `${winningInfo.points}点の和了`
+                    }
+                  </div>
+
+                  <div className="mb-3">
+                    <span className="font-semibold">和了牌：</span>
+                    <div className="inline-flex w-12 h-16 mx-2">
+                      <div className="relative w-full h-full">
+                        <Image
+                          src={getTileImagePath(winningInfo.winningTile)}
+                          alt={winningInfo.winningTile}
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <div className="font-semibold mb-2">成立した役：</div>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {winningInfo.yaku.map((yaku, index) => (
+                        <span
+                          key={index}
+                          className="px-3 py-1 bg-white rounded-full text-sm font-medium border"
+                        >
+                          {yaku}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={reset}
+                  className="px-6 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors"
+                >
+                  新しいゲームを始める
+                </button>
+              </div>
+            </section>
+          )}
+
+          {/* 流局表示 */}
+          {gamePhase === 'finished' && !winningInfo && (
+            <section className="mt-4">
+              <div className="p-6 rounded-lg text-center bg-gray-100">
+                <h2 className="text-2xl font-bold mb-4">流局</h2>
+                <div className="text-lg mb-4">
+                  <div className="mb-2">プレイヤー：{playerDiscards.length}枚捨て牌</div>
+                  <div className="mb-2">CPU：{cpuDiscards.length}枚捨て牌</div>
+                </div>
+                <button
+                  onClick={reset}
+                  className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  新しいゲームを始める
+                </button>
+              </div>
+            </section>
+          )}
 
           {suggestions && suggestions.length > 0 && (
             <section className="mt-8">
