@@ -11,6 +11,7 @@ import { TenpaiPattern, WinningInfo } from '@/types';
 import { GameHeader } from './game-header';
 import Image from 'next/image';
 import { getTileImagePath } from '@/app/lib/mahjong';
+import { translateYaku } from '@/lib/yaku-translations';
 
 interface Props {
   // 基本状態
@@ -19,6 +20,9 @@ interface Props {
   dora: string;
   gamePhase: 'initial' | 'selecting' | 'playing' | 'finished';
   error: string | null;
+
+  // CPU状態
+  cpuState: any | null;
 
   // 対局状態
   playerDiscards: Tile[];
@@ -52,6 +56,9 @@ export function GameBoard({
   gamePhase,
   error,
 
+  // CPU状態
+  cpuState,
+
   // 対局状態
   playerDiscards,
   cpuDiscards,
@@ -78,27 +85,26 @@ export function GameBoard({
   const [activeTile, setActiveTile] = useState<Tile | null>(null);
   const [activeZone, setActiveZone] = useState<"hand" | "pool" | null>(null);
 
-  // 捨て牌履歴を6枚ずつ表示するヘルパー関数
+  // 捨て牌履歴を表示するヘルパー関数（MahjongGridスタイル）
   const renderDiscardHistory = (discards: Tile[]) => {
-    const rows = [];
-    for (let i = 0; i < discards.length; i += 6) {
-      const rowTiles = discards.slice(i, i + 6);
-      rows.push(
-        <div key={i} className="flex gap-1 mb-1">
-          {rowTiles.map((tile, index) => (
-            <div key={tile.id} className="w-8 h-12">
-              <MahjongTile
-                tile={tile}
-                selected={false}
-                index={i + index}
-                priority={false}
-              />
-            </div>
-          ))}
-        </div>
-      );
+    if (discards.length === 0) {
+      return <div className="text-gray-400 text-center">まだ捨て牌がありません</div>;
     }
-    return rows;
+
+    return (
+      <div className="grid grid-cols-6 gap-2">
+        {discards.map((tile, index) => (
+          <div key={tile.id}>
+            <MahjongTile
+              tile={tile}
+              selected={false}
+              index={index}
+              priority={false}
+            />
+          </div>
+        ))}
+      </div>
+    );
   };
 
   const sensors = useSensors(useSensor(PointerSensor, {
@@ -158,7 +164,6 @@ export function GameBoard({
       <div className="container mx-auto p-4">
         <GameHeader
           onDeal={dealTiles}
-          onReset={reset}
           onAnalyze={analyzeTenpai}
           isAnalyzing={isAnalyzing}
           hasDealt={hasDealt}
@@ -175,16 +180,28 @@ export function GameBoard({
               <section>
                 <div className="flex justify-between items-center mb-2">
                   <h2 className="font-semibold">手牌選択（13枚を選んでください）</h2>
-                  <button
-                    onClick={completeSelection}
-                    disabled={handTiles.length !== 13}
-                    className={`px-4 py-2 rounded ${handTiles.length === 13
-                      ? 'bg-blue-500 text-white hover:bg-blue-600'
-                      : 'bg-gray-300 text-gray-500'
-                      }`}
-                  >
-                    選択完了 ({handTiles.length}/13枚)
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={reset}
+                      disabled={handTiles.length === 0}
+                      className={`px-4 py-2 rounded ${handTiles.length > 0
+                        ? 'bg-red-500 text-white hover:bg-red-600'
+                        : 'bg-gray-300 text-gray-500'
+                        }`}
+                    >
+                      リセット
+                    </button>
+                    <button
+                      onClick={completeSelection}
+                      disabled={handTiles.length !== 13}
+                      className={`px-4 py-2 rounded ${handTiles.length === 13
+                        ? 'bg-blue-500 text-white hover:bg-blue-600'
+                        : 'bg-gray-300 text-gray-500'
+                        }`}
+                    >
+                      選択完了 ({handTiles.length}/13枚)
+                    </button>
+                  </div>
                 </div>
                 <div className="max-w-full overflow-x-auto">
                   <HandZone
@@ -197,7 +214,6 @@ export function GameBoard({
 
               <section>
                 <div className="flex justify-between items-center mb-2">
-                  <h2 className="font-semibold">配牌</h2>
                   <DoraIndicator dora={dora} />
                 </div>
                 <div className="max-w-full overflow-x-auto">
@@ -235,25 +251,17 @@ export function GameBoard({
               </section>
 
               {/* 捨て牌履歴 */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-8">
                 <section>
                   <h2 className="mb-2 font-semibold">あなたの捨て牌</h2>
-                  <div className="bg-gray-50 p-4 rounded-lg min-h-20">
-                    {playerDiscards.length === 0 ? (
-                      <div className="text-gray-400 text-center">まだ捨て牌がありません</div>
-                    ) : (
-                      renderDiscardHistory(playerDiscards)
-                    )}
+                  <div className="bg-blue-50 p-4 rounded-lg min-h-20 border border-blue-200">
+                    {renderDiscardHistory(playerDiscards)}
                   </div>
                 </section>
                 <section>
                   <h2 className="mb-2 font-semibold">CPUの捨て牌</h2>
-                  <div className="bg-gray-50 p-4 rounded-lg min-h-20">
-                    {cpuDiscards.length === 0 ? (
-                      <div className="text-gray-400 text-center">まだ捨て牌がありません</div>
-                    ) : (
-                      renderDiscardHistory(cpuDiscards)
-                    )}
+                  <div className="bg-red-50 p-4 rounded-lg min-h-20 border border-red-200">
+                    {renderDiscardHistory(cpuDiscards)}
                   </div>
                 </section>
               </div>
@@ -323,31 +331,54 @@ export function GameBoard({
                 </h2>
 
                 <div className="mb-4">
-                  <div className="text-xl font-semibold mb-2">
-                    {winningInfo.han && winningInfo.fu ?
-                      `${winningInfo.han}飜 ${winningInfo.fu}符 ${winningInfo.points}点` :
-                      `${winningInfo.points}点の和了`
-                    }
+                  {/* ポイント表示 */}
+                  <div className="text-2xl font-bold mb-4 text-blue-600">
+                    {winningInfo.han ? `${winningInfo.han}ポイント` : '1ポイント'}
                   </div>
 
-                  <div className="mb-3">
-                    <span className="font-semibold">和了牌：</span>
-                    <div className="inline-flex w-12 h-16 mx-2">
-                      <div className="relative w-full h-full">
-                        <Image
-                          src={getTileImagePath(winningInfo.winningTile)}
-                          alt={winningInfo.winningTile}
-                          fill
-                          className="object-contain"
-                        />
-                      </div>
+                  {/* 最終形表示 */}
+                  <div className="mb-4">
+                    <div className="font-semibold mb-2">最終形：</div>
+                    <div className="flex justify-center items-center gap-1 mb-2">
+                      {winningInfo.winner === 'player' ?
+                        // プレイヤーの最終形（手牌 + 和了牌）
+                        [...handTiles, { id: 'winning', type: winningInfo.winningTile, imagePath: getTileImagePath(winningInfo.winningTile) }].map((tile, index) => (
+                          <div key={tile.id || index} className="w-8 h-12">
+                            <div className="relative w-full h-full">
+                              <Image
+                                src={tile.imagePath}
+                                alt={tile.type}
+                                fill
+                                className="object-contain"
+                              />
+                            </div>
+                          </div>
+                        )) :
+                        // CPUの最終形（手牌 + 和了牌）
+                        [...(cpuState?.handTiles || []), { id: 'winning', type: winningInfo.winningTile, imagePath: getTileImagePath(winningInfo.winningTile) }].map((tile, index) => (
+                          <div key={tile.id || index} className="w-8 h-12">
+                            <div className="relative w-full h-full">
+                              <Image
+                                src={tile.imagePath}
+                                alt={tile.type}
+                                fill
+                                className="object-contain"
+                              />
+                            </div>
+                          </div>
+                        ))
+                      }
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      和了牌: {winningInfo.winningTile}
                     </div>
                   </div>
 
+                  {/* 成立役表示 */}
                   <div className="mb-4">
                     <div className="font-semibold mb-2">成立した役：</div>
                     <div className="flex flex-wrap justify-center gap-2">
-                      {winningInfo.yaku.map((yaku, index) => (
+                      {translateYaku(winningInfo.yaku).map((yaku, index) => (
                         <span
                           key={index}
                           className="px-3 py-1 bg-white rounded-full text-sm font-medium border"

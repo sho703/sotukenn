@@ -108,12 +108,13 @@ def check_win(tiles, last_tile, dora):
             sou=dora_sou,
             honors=dora_honors
         )
-        dora_indicators = [i for i, x in enumerate(dora_136) if x == 1]
+        # TilesConverterは直接インデックスリストを返す
+        dora_indicators = dora_136 if isinstance(dora_136, list) and all(isinstance(x, int) for x in dora_136) else [i for i, x in enumerate(dora_136) if x == 1]
         
-        # 和了判定を実行
+        # 和了判定を実行（プレイヤーは常時リーチ状態）
         config = HandConfig(
             is_tsumo=False,  # ロン和了
-            is_riichi=False
+            is_riichi=True   # プレイヤーは常時リーチ状態
         )
         
         result = calculator.estimate_hand_value(

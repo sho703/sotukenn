@@ -111,27 +111,67 @@ export function useMahjongDeal(): MahjongDealHook {
     setSuggestions(null);
   };
 
-  // ゲームをリセット
+  // 手牌ゾーンの牌をすべて戻す
   const reset = () => {
-    setError(null);
-    setDora("1m");
-    setDoraTile(null);
-    setHandTiles([]);
-    setPoolTiles([]);
-    setCpuState(null);
-    setGamePhase('initial');
-    setIsPlayerTurn(true);
-    setPlayerDiscards([]);
-    setCpuDiscards([]);
-    setWinningInfo(null);
-    setSuggestions(null);
-    setIsAnalyzing(false);
-    setIsProcessingWin(false);
+    if (gamePhase === 'selecting' && handTiles.length > 0) {
+      // 手牌ゾーンの牌をすべてプールに戻す
+      const allTiles = [...handTiles, ...poolTiles];
+      setHandTiles([]);
+      setPoolTiles(sortTiles(allTiles));
+    } else if (gamePhase === 'finished') {
+      // 和了画面から新しいゲームを始める
+      setGamePhase('initial');
+      setHandTiles([]);
+      setPoolTiles([]);
+      setCpuState(null);
+      setPlayerDiscards([]);
+      setCpuDiscards([]);
+      setWinningInfo(null);
+      setIsPlayerTurn(true);
+      setIsProcessingWin(false);
+      setError(null);
+      setSuggestions(null);
+    }
   };
 
   // 手牌選択完了の処理
-  const completeSelection = () => {
+  const completeSelection = async () => {
     if (gamePhase !== 'selecting' || handTiles.length !== 13) {
+      return;
+    }
+
+    // 聴牌チェック
+    try {
+      const response = await fetch('/api/check-tenpai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tiles: handTiles.map(t => t.type),
+          dora
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+
+        if (!result.isTenpai) {
+          // 聴牌でない場合はアラートを表示
+          alert('選択した手牌は聴牌ではありません。別の組み合わせを選択してください。');
+          return;
+        }
+
+        // 聴牌の場合は待ち牌を表示
+        if (result.waitingTiles && result.waitingTiles.length > 0) {
+          alert(`聴牌です！待ち牌: ${result.waitingTiles.join(', ')}`);
+        }
+      } else {
+        console.error('聴牌チェックエラー:', response.status);
+        alert('聴牌チェック中にエラーが発生しました。');
+        return;
+      }
+    } catch (error) {
+      console.error('聴牌チェックエラー:', error);
+      alert('聴牌チェック中にエラーが発生しました。');
       return;
     }
 
