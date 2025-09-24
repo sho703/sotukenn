@@ -12,7 +12,7 @@ export interface Tile {
 export type Zone = 'hand' | 'pool';
 
 // ゲームフェーズを表す型
-export type GamePhase = 'initial' | 'selecting' | 'playing' | 'finished' | 'draw';
+export type GamePhase = 'title' | 'selecting' | 'playing' | 'finished' | 'draw';
 
 // CPUの情報を表す型
 export interface CpuState {
@@ -74,6 +74,10 @@ export interface MahjongDealHook extends MahjongDealState {
   dealTiles: () => void;
   completeSelection: () => void;  // 手牌選択完了
   discardTile: (tile: Tile) => Promise<void>;  // 牌を捨てる
+  startGame: () => void;  // ゲーム開始
+  nextRound: () => void;  // 次の局へ
+  endGame: () => void;  // ゲーム終了
+  currentRound: number;  // 現在の局数
 }
 
 // Tenpai Analysis Types

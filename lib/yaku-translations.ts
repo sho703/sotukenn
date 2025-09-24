@@ -13,23 +13,45 @@ export const yakuTranslations: Record<string, string> = {
   'Pinfu': '平和',
   'Tanyao': '断么九',
   'Iipeiko': '一盃口',
-  'Yakuhai (wind of seat)': '役牌（自風）',
-  'Yakuhai (wind of round)': '役牌（場風）',
-  'Yakuhai (white)': '役牌（白）',
-  'Yakuhai (green)': '役牌（發）',
-  'Yakuhai (red)': '役牌（中）',
+  // 風牌（Wind tiles）
+  'Yakuhai (wind of seat)': '自風牌',
+  'Yakuhai (wind of round)': '場風牌',
+
+  // 三元牌（Dragon tiles）
+  'Yakuhai (haku)': '白',
+  'Yakuhai (hatsu)': '發',
+  'Yakuhai (chun)': '中',
+
+
+  // 具体的な風牌の翻訳（GitHubのmahjongライブラリ準拠）
+  'Yakuhai (east)': '東',
+  'Yakuhai (south)': '南',
+  'Yakuhai (west)': '西',
+  'Yakuhai (north)': '北',
+
+  // 場風・自風の詳細表記
+  'Yakuhai (prevalent wind)': '場風牌',
+  'Yakuhai (seat wind)': '自風牌',
+
+  // 役牌の別表記（GitHubのmahjongライブラリ準拠）
+  'Yakuhai': '役牌',
+  'Honor tiles': '字牌',
+  'Wind tiles': '風牌',
+  'Dragon tiles': '三元牌',
+
 
   // 2翻役
   'Double Riichi': 'ダブル立直',
   'Chiitoitsu': '七対子',
   'Chanta': '混全帯么九',
-  'Ikkitsuukan': '一気通貫',
+  'Ittsu': '一気通貫',
   'Toitoi': '対々和',
   'San Ankou': '三暗刻',
   'Sanshoku Doukou': '三色同刻',
   'Sanshoku Doujun': '三色同順',
   'Honroutou': '混老頭',
-  'Shousangen': '小三元',
+  'Shou Sangen': '小三元',
+  'Sankantsu': '三槓子',
 
   // 3翻役
   'Ryanpeikou': '二盃口',
@@ -51,8 +73,8 @@ export const yakuTranslations: Record<string, string> = {
   'Chinroutou': '清老頭',
   'Kokushi Musou': '国士無双',
   'Kokushi Musou Juusanmen': '国士無双十三面待ち',
-  'Shousuushii': '小四喜',
-  'Daisuushii': '大四喜',
+  'Shou Suushii': '小四喜',
+  'Dai Suushii': '大四喜',
   'Suukantsu': '四槓子',
   'Chuuren Poutou': '九蓮宝燈',
   'Chuuren Poutou Kyuumen': '純正九蓮宝燈',

@@ -9,6 +9,7 @@ import { DoraIndicator } from './dora-indicator';
 import { Tile } from './types';
 import { TenpaiPattern, WinningInfo, ScoreInfo } from '@/types';
 import { GameHeader } from './game-header';
+import { TitleScreen } from './title-screen';
 import Image from 'next/image';
 import { getTileImagePath } from '@/app/lib/mahjong';
 import { translateYaku } from '@/lib/yaku-translations';
@@ -18,7 +19,7 @@ interface Props {
   handTiles: Tile[];
   poolTiles: Tile[];
   dora: string;
-  gamePhase: 'initial' | 'selecting' | 'playing' | 'finished' | 'draw';
+  gamePhase: 'title' | 'selecting' | 'playing' | 'finished' | 'draw';
   error: string | null;
 
   // CPU状態
@@ -44,11 +45,15 @@ interface Props {
   completeSelection: () => void;
   analyzeTenpai: () => void;
   discardTile: (tile: Tile) => Promise<void>;
+  startGame: () => void;
+  nextRound: () => void;
+  endGame: () => void;
 
   // 状態
   isAnalyzing: boolean;
   hasDealt: boolean;
   suggestions: TenpaiPattern[] | null;
+  currentRound: number;
 }
 
 export function GameBoard({
@@ -82,11 +87,15 @@ export function GameBoard({
   completeSelection,
   analyzeTenpai,
   discardTile,
+  startGame,
+  nextRound,
+  endGame,
 
   // 状態
   isAnalyzing,
   hasDealt,
-  suggestions
+  suggestions,
+  currentRound
 }: Props) {
   const [activeTile, setActiveTile] = useState<Tile | null>(null);
   const [activeZone, setActiveZone] = useState<"hand" | "pool" | null>(null);
@@ -161,6 +170,11 @@ export function GameBoard({
     setActiveZone(null);
   };
 
+  // タイトル画面
+  if (gamePhase === 'title') {
+    return <TitleScreen onStartGame={startGame} />;
+  }
+
   return (
     <DndContext
       sensors={sensors}
@@ -168,13 +182,18 @@ export function GameBoard({
       onDragEnd={handleDragEnd}
     >
       <div className="container mx-auto p-4">
-        <GameHeader
-          onDeal={dealTiles}
-          onAnalyze={analyzeTenpai}
-          isAnalyzing={isAnalyzing}
-          hasDealt={hasDealt}
-          score={score}
-        />
+        {/* 局数表示（左上） */}
+        <div className="absolute top-4 left-4 text-lg font-semibold text-gray-700">
+          第{currentRound}局
+        </div>
+
+        {/* スコア表示（真ん中上） */}
+        <div className="text-center mb-6">
+          <div className="text-xl font-semibold text-gray-700">
+            プレイヤー {score.player} : {score.cpu} CPU
+          </div>
+        </div>
+
         <div className="space-y-6">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
@@ -184,6 +203,26 @@ export function GameBoard({
 
           {gamePhase === 'selecting' && (
             <>
+              {/* 手牌選択画面のボタン */}
+              <div className="flex justify-center gap-4 mb-6">
+                {!hasDealt && (
+                  <button
+                    onClick={dealTiles}
+                    disabled={isAnalyzing}
+                    className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-300 font-semibold"
+                  >
+                    配牌する
+                  </button>
+                )}
+                <button
+                  onClick={analyzeTenpai}
+                  disabled={!hasDealt || isAnalyzing}
+                  className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 font-semibold"
+                >
+                  {isAnalyzing ? '分析中...' : '聴牌形提案'}
+                </button>
+              </div>
+
               <section>
                 <div className="flex justify-between items-center mb-2">
                   <h2 className="font-semibold">手牌選択（13枚を選んでください）</h2>
@@ -337,6 +376,18 @@ export function GameBoard({
                   {winningInfo.winner === 'player' ? '🎉 あなたの和了！' : '😔 CPUの和了'}
                 </h2>
 
+                {/* 勝利判定 */}
+                {(score.player >= 5 || score.cpu >= 5) && (
+                  <div className="mb-6 p-4 bg-yellow-100 border-2 border-yellow-300 rounded-lg">
+                    <h3 className="text-2xl font-bold text-yellow-800 mb-2">
+                      🏆 ゲーム終了！
+                    </h3>
+                    <p className="text-lg text-yellow-700">
+                      {score.player >= 5 ? 'プレイヤーの勝利！' : 'CPUの勝利！'}
+                    </p>
+                  </div>
+                )}
+
                 <div className="mb-4">
                   {/* ポイント表示 */}
                   <div className="text-2xl font-bold mb-4 text-blue-600">
@@ -349,7 +400,7 @@ export function GameBoard({
                     <div className="flex justify-center items-center gap-1 mb-2">
                       {winningInfo.winner === 'player' ?
                         // プレイヤーの最終形（手牌 + 和了牌）
-                        [...handTiles, { id: 'winning', type: winningInfo.winningTile, imagePath: getTileImagePath(winningInfo.winningTile) }].map((tile, index) => (
+                        [...handTiles, { id: 'winning-player', type: winningInfo.winningTile, imagePath: getTileImagePath(winningInfo.winningTile) }].map((tile, index) => (
                           <div key={tile.id || index} className="w-8 h-12">
                             <div className="relative w-full h-full">
                               <Image
@@ -362,7 +413,7 @@ export function GameBoard({
                           </div>
                         )) :
                         // CPUの最終形（手牌 + 和了牌）
-                        [...(cpuState?.handTiles || []), { id: 'winning', type: winningInfo.winningTile, imagePath: getTileImagePath(winningInfo.winningTile) }].map((tile, index) => (
+                        [...(cpuState?.handTiles || []), { id: 'winning-cpu', type: winningInfo.winningTile, imagePath: getTileImagePath(winningInfo.winningTile) }].map((tile, index) => (
                           <div key={tile.id || index} className="w-8 h-12">
                             <div className="relative w-full h-full">
                               <Image
@@ -397,12 +448,23 @@ export function GameBoard({
                   </div>
                 </div>
 
-                <button
-                  onClick={reset}
-                  className="px-6 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors"
-                >
-                  新しいゲームを始める
-                </button>
+                <div className="flex justify-center gap-4">
+                  {score.player >= 5 || score.cpu >= 5 ? (
+                    <button
+                      onClick={endGame}
+                      className="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold"
+                    >
+                      タイトルに戻る
+                    </button>
+                  ) : (
+                    <button
+                      onClick={nextRound}
+                      className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-semibold"
+                    >
+                      次の局へ
+                    </button>
+                  )}
+                </div>
               </div>
             </section>
           )}
@@ -420,12 +482,23 @@ export function GameBoard({
                     ポイントは加算されません
                   </div>
                 </div>
-                <button
-                  onClick={reset}
-                  className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-semibold"
-                >
-                  新しいゲームを始める
-                </button>
+                <div className="flex justify-center gap-4">
+                  {score.player >= 5 || score.cpu >= 5 ? (
+                    <button
+                      onClick={endGame}
+                      className="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold"
+                    >
+                      タイトルに戻る
+                    </button>
+                  ) : (
+                    <button
+                      onClick={nextRound}
+                      className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-semibold"
+                    >
+                      次の局へ
+                    </button>
+                  )}
+                </div>
               </div>
             </section>
           )}

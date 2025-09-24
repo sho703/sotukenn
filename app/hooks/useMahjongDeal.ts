@@ -62,7 +62,7 @@ export function useMahjongDeal(): MahjongDealHook {
   const [poolTiles, setPoolTiles] = useState<Tile[]>([]);
   const [dora, setDora] = useState<TileType>("1m");
   const [doraTile, setDoraTile] = useState<Tile | null>(null);
-  const [gamePhase, setGamePhase] = useState<GamePhase>('initial');
+  const [gamePhase, setGamePhase] = useState<GamePhase>('title');
   const [error, setError] = useState<string | null>(null);
 
   // CPU状態
@@ -79,6 +79,9 @@ export function useMahjongDeal(): MahjongDealHook {
 
   // スコア状態
   const [score, setScore] = useState<ScoreInfo>({ player: 0, cpu: 0 });
+
+  // 局数管理
+  const [currentRound, setCurrentRound] = useState(1);
 
   // 分析状態
   const [suggestions, setSuggestions] = useState<TenpaiPattern[] | null>(null);
@@ -102,24 +105,75 @@ export function useMahjongDeal(): MahjongDealHook {
     return score.player >= 5 || score.cpu >= 5;
   };
 
+  // ゲーム開始
+  const startGame = () => {
+    setGamePhase('selecting');
+    setCurrentRound(1);
+    setScore({ player: 0, cpu: 0 });
+    setWinningInfo(null);
+    setError(null);
+    setSuggestions(null);
+    // 牌IDカウンターをリセット
+    tileIdCounter = 0;
+  };
+
+  // 次の局へ
+  const nextRound = () => {
+    setGamePhase('selecting');
+    setCurrentRound(prev => prev + 1);
+    setWinningInfo(null);
+    setError(null);
+    setSuggestions(null);
+    setHandTiles([]);
+    setPoolTiles([]);
+    setCpuState(null);
+    setPlayerDiscards([]);
+    setCpuDiscards([]);
+    setIsPlayerTurn(true);
+    setIsProcessingWin(false);
+    // 牌IDカウンターをリセット
+    tileIdCounter = 0;
+  };
+
+  // ゲーム終了（タイトル画面に戻る）
+  const endGame = () => {
+    setGamePhase('title');
+    setCurrentRound(1);
+    setScore({ player: 0, cpu: 0 });
+    setWinningInfo(null);
+    setError(null);
+    setSuggestions(null);
+    setHandTiles([]);
+    setPoolTiles([]);
+    setCpuState(null);
+    setPlayerDiscards([]);
+    setCpuDiscards([]);
+    setIsPlayerTurn(true);
+    setIsProcessingWin(false);
+    // 牌IDカウンターをリセット
+    tileIdCounter = 0;
+  };
+
   // 牌を配布する関数
   const dealTiles = () => {
     setError(null);
+    // 牌IDカウンターをリセット
+    tileIdCounter = 0;
     const raw = dealMahjong();
 
-    // プレイヤーの牌を生成（34枚）
-    const playerTiles = convertToTiles(raw.player1);
+    // すべての牌を一度に生成（プレイヤー + CPU + ドラ）
+    const allTiles = convertToTiles([...raw.player1, ...raw.player2, raw.dora]);
 
-    // CPUの牌を生成して整理
-    const cpuTiles = convertToTiles(raw.player2);
+    // プレイヤーの牌（最初の34枚）
+    const playerTiles = allTiles.slice(0, 34);
+
+    // CPUの牌（次の34枚）
+    const cpuTiles = allTiles.slice(34, 68);
+
+    // ドラ牌（最後の1枚）
+    const newDoraTile = allTiles[68];
+
     const newCpuState = setupCpuTiles(cpuTiles);
-
-    // ドラ牌を生成
-    const newDoraTile = {
-      id: nextTileId(),
-      type: raw.dora,
-      imagePath: getTileImagePath(raw.dora)
-    };
 
     // 状態を更新
     setDora(raw.dora);
@@ -143,7 +197,7 @@ export function useMahjongDeal(): MahjongDealHook {
       setPoolTiles(sortTiles(allTiles));
     } else if (gamePhase === 'finished' || gamePhase === 'draw') {
       // 和了画面または流局画面から新しいゲームを始める
-      setGamePhase('initial');
+      setGamePhase('title');
       setHandTiles([]);
       setPoolTiles([]);
       setCpuState(null);
@@ -215,7 +269,7 @@ export function useMahjongDeal(): MahjongDealHook {
     toZone: Zone,
     atIdx?: number
   ) => {
-    if (gamePhase === 'initial') return;
+    if (gamePhase === 'title') return;
     if (fromZone === toZone) return;
 
     let fromArr = fromZone === "hand" ? handTiles : poolTiles;
@@ -262,7 +316,7 @@ export function useMahjongDeal(): MahjongDealHook {
     fromIdx: number,
     toIdx: number
   ) => {
-    if (gamePhase === 'initial') return;
+    if (gamePhase === 'title') return;
     const arr = zone === "hand" ? [...handTiles] : [...poolTiles];
     const [removed] = arr.splice(fromIdx, 1);
     arr.splice(toIdx, 0, removed);
@@ -280,18 +334,13 @@ export function useMahjongDeal(): MahjongDealHook {
       return;
     }
 
-    // 捨て牌候補が尽きた場合の流局判定
-    if (poolTiles.length <= 1) {
-      setGamePhase('draw');
-      return;
-    }
-
     // 和了判定処理中フラグを立てる
     setIsProcessingWin(true);
 
     // プレイヤーの捨て牌を記録
     setPlayerDiscards(prev => [...prev, tile]);
-    setPoolTiles(prev => prev.filter(t => t.id !== tile.id));
+    const newPoolTiles = poolTiles.filter(t => t.id !== tile.id);
+    setPoolTiles(newPoolTiles);
     setIsPlayerTurn(false);
 
     // CPUの和了判定（ロン）
@@ -344,6 +393,8 @@ export function useMahjongDeal(): MahjongDealHook {
       return;
     }
 
+    // プレイヤーが最後の1枚を捨てた場合は、CPUの捨て牌後に流局判定する
+
     // CPUの捨て牌処理
     await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -358,6 +409,13 @@ export function useMahjongDeal(): MahjongDealHook {
     const cpuDiscard = cpuState.discardTiles[cpuDiscards.length];
     setCpuDiscards(prev => [...prev, cpuDiscard]);
     setIsPlayerTurn(true);
+
+    // 流局判定（CPUの捨て牌後）
+    if (newPoolTiles.length === 0) {
+      setGamePhase('draw');
+      setIsProcessingWin(false);
+      return;
+    }
 
     // プレイヤーの和了判定（ロン）
     try {
@@ -393,6 +451,7 @@ export function useMahjongDeal(): MahjongDealHook {
         setGamePhase('finished');
       }
 
+
       setIsProcessingWin(false);
     } catch (err) {
       console.error('プレイヤー和了判定エラー:', err);
@@ -402,7 +461,7 @@ export function useMahjongDeal(): MahjongDealHook {
   };
 
   const analyzeTenpai = async () => {
-    if (gamePhase === 'initial') return;
+    if (gamePhase === 'title') return;
     setError(null);
     setIsAnalyzing(true);
     setSuggestions(null);
@@ -469,8 +528,12 @@ export function useMahjongDeal(): MahjongDealHook {
     completeSelection,
     discardTile,
     analyzeTenpai,
+    startGame,
+    nextRound,
+    endGame,
 
     // 派生状態
-    hasDealt: gamePhase !== 'initial'
+    hasDealt: poolTiles.length > 0,
+    currentRound
   };
 }
