@@ -10,7 +10,8 @@ import {
   TenpaiPattern,
   GamePhase,
   CpuState,
-  WinningInfo
+  WinningInfo,
+  ScoreInfo
 } from "@/types";
 
 // ユニークID生成ヘルパー（簡単なインクリメント、uuidでもOK）
@@ -18,6 +19,7 @@ let tileIdCounter = 0;
 function nextTileId(): string {
   return `tile-${tileIdCounter++}`;
 }
+
 
 // CPUの手牌と捨て牌を設定する関数
 function setupCpuTiles(tiles: Tile[]): CpuState {
@@ -75,9 +77,30 @@ export function useMahjongDeal(): MahjongDealHook {
   // 和了情報
   const [winningInfo, setWinningInfo] = useState<WinningInfo | null>(null);
 
+  // スコア状態
+  const [score, setScore] = useState<ScoreInfo>({ player: 0, cpu: 0 });
+
   // 分析状態
   const [suggestions, setSuggestions] = useState<TenpaiPattern[] | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  // スコア加算と勝利判定（飜数ベース）
+  const addScore = (winner: 'player' | 'cpu', han: number) => {
+    // 飜数をそのままスコアに加算（1飜=1ポイント）
+    const points = han || 1; // hanが0の場合は1ポイント
+    setScore(prevScore => {
+      const newScore = {
+        player: winner === 'player' ? prevScore.player + points : prevScore.player,
+        cpu: winner === 'cpu' ? prevScore.cpu + points : prevScore.cpu
+      };
+      return newScore;
+    });
+  };
+
+  // 勝利判定（5ポイント先取）
+  const checkWinCondition = (): boolean => {
+    return score.player >= 5 || score.cpu >= 5;
+  };
 
   // 牌を配布する関数
   const dealTiles = () => {
@@ -118,8 +141,8 @@ export function useMahjongDeal(): MahjongDealHook {
       const allTiles = [...handTiles, ...poolTiles];
       setHandTiles([]);
       setPoolTiles(sortTiles(allTiles));
-    } else if (gamePhase === 'finished') {
-      // 和了画面から新しいゲームを始める
+    } else if (gamePhase === 'finished' || gamePhase === 'draw') {
+      // 和了画面または流局画面から新しいゲームを始める
       setGamePhase('initial');
       setHandTiles([]);
       setPoolTiles([]);
@@ -257,6 +280,12 @@ export function useMahjongDeal(): MahjongDealHook {
       return;
     }
 
+    // 捨て牌候補が尽きた場合の流局判定
+    if (poolTiles.length <= 1) {
+      setGamePhase('draw');
+      return;
+    }
+
     // 和了判定処理中フラグを立てる
     setIsProcessingWin(true);
 
@@ -281,12 +310,14 @@ export function useMahjongDeal(): MahjongDealHook {
         if (response.ok) {
           const result = await response.json();
           if (result.isWinning) {
+            const han = result.han || 1;
+            addScore('cpu', han);
             setWinningInfo({
               winner: 'cpu',
               points: result.points || 1,
               yaku: result.yaku || ['不明な役'],
               winningTile: tile.type,
-              han: result.han,
+              han: han,
               fu: result.fu
             });
             setGamePhase('finished');
@@ -299,11 +330,14 @@ export function useMahjongDeal(): MahjongDealHook {
       }
 
       // ライブラリでの判定に失敗した場合、ランダムで和了
+      const han = Math.floor(Math.random() * 3) + 1;
+      addScore('cpu', han);
       setWinningInfo({
         winner: 'cpu',
-        points: Math.floor(Math.random() * 3) + 1,
+        points: han * 1000, // 表示用の点数（飜数×1000）
         yaku: ['ランダム和了', 'CPU特殊役'],
-        winningTile: tile.type
+        winningTile: tile.type,
+        han: han
       });
       setGamePhase('finished');
       setIsProcessingWin(false);
@@ -316,7 +350,7 @@ export function useMahjongDeal(): MahjongDealHook {
     // CPUの捨て牌候補があるかチェック
     if (cpuDiscards.length >= cpuState.discardTiles.length) {
       console.log('CPUの捨て牌が不足しています');
-      setGamePhase('finished');
+      setGamePhase('draw');
       setIsProcessingWin(false);
       return;
     }
@@ -346,12 +380,14 @@ export function useMahjongDeal(): MahjongDealHook {
       const result = await response.json();
 
       if (result.isWinning) {
+        const han = result.han || 1;
+        addScore('player', han);
         setWinningInfo({
           winner: 'player',
           points: result.points || 1,
           yaku: result.yaku || ['不明な役'],
           winningTile: cpuDiscard.type,
-          han: result.han,
+          han: han,
           fu: result.fu
         });
         setGamePhase('finished');
@@ -417,6 +453,9 @@ export function useMahjongDeal(): MahjongDealHook {
 
     // 和了情報
     winningInfo,
+
+    // スコア情報
+    score,
 
     // 分析状態
     suggestions,

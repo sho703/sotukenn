@@ -7,7 +7,7 @@ import { MahjongGrid } from './mahjong-grid';
 import { MahjongTile } from './mahjong-tile';
 import { DoraIndicator } from './dora-indicator';
 import { Tile } from './types';
-import { TenpaiPattern, WinningInfo } from '@/types';
+import { TenpaiPattern, WinningInfo, ScoreInfo } from '@/types';
 import { GameHeader } from './game-header';
 import Image from 'next/image';
 import { getTileImagePath } from '@/app/lib/mahjong';
@@ -18,7 +18,7 @@ interface Props {
   handTiles: Tile[];
   poolTiles: Tile[];
   dora: string;
-  gamePhase: 'initial' | 'selecting' | 'playing' | 'finished';
+  gamePhase: 'initial' | 'selecting' | 'playing' | 'finished' | 'draw';
   error: string | null;
 
   // CPU状態
@@ -32,6 +32,9 @@ interface Props {
 
   // 和了情報
   winningInfo: WinningInfo | null;
+
+  // スコア情報
+  score: ScoreInfo;
 
   // 操作
   moveTile: (tileId: string, fromZone: "hand" | "pool", toZone: "hand" | "pool", atIdx?: number) => void;
@@ -67,6 +70,9 @@ export function GameBoard({
 
   // 和了情報
   winningInfo,
+
+  // スコア情報
+  score,
 
   // 操作
   moveTile,
@@ -167,6 +173,7 @@ export function GameBoard({
           onAnalyze={analyzeTenpai}
           isAnalyzing={isAnalyzing}
           hasDealt={hasDealt}
+          score={score}
         />
         <div className="space-y-6">
           {error && (
@@ -401,17 +408,21 @@ export function GameBoard({
           )}
 
           {/* 流局表示 */}
-          {gamePhase === 'finished' && !winningInfo && (
+          {gamePhase === 'draw' && (
             <section className="mt-4">
-              <div className="p-6 rounded-lg text-center bg-gray-100">
-                <h2 className="text-2xl font-bold mb-4">流局</h2>
-                <div className="text-lg mb-4">
+              <div className="p-6 rounded-lg text-center bg-gray-100 border-2 border-gray-300">
+                <h2 className="text-3xl font-bold mb-4 text-gray-700">🀄 流局（引き分け）</h2>
+                <div className="text-lg mb-6 text-gray-600">
+                  <div className="mb-2">捨て牌候補が尽きました</div>
                   <div className="mb-2">プレイヤー：{playerDiscards.length}枚捨て牌</div>
                   <div className="mb-2">CPU：{cpuDiscards.length}枚捨て牌</div>
+                  <div className="text-sm text-gray-500 mt-4">
+                    ポイントは加算されません
+                  </div>
                 </div>
                 <button
                   onClick={reset}
-                  className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-semibold"
                 >
                   新しいゲームを始める
                 </button>

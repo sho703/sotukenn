@@ -1,18 +1,25 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
+import { ScoreInfo } from "@/types";
 
 interface Props {
   onDeal: () => void;
   onAnalyze: () => void;
   isAnalyzing: boolean;
   hasDealt: boolean; // 配牌が行われたかどうか
+  score: ScoreInfo; // スコア情報
 }
 
-export function GameHeader({ onDeal, onAnalyze, isAnalyzing, hasDealt }: Props) {
+export function GameHeader({ onDeal, onAnalyze, isAnalyzing, hasDealt, score }: Props) {
   return (
     <div className="flex justify-between items-center mb-6">
-      <h1 className="text-2xl font-bold">2人麻雀</h1>
+      <div className="flex items-center space-x-6">
+        <h1 className="text-2xl font-bold">2人麻雀</h1>
+        <div className="text-lg font-semibold text-gray-700">
+          プレイヤー {score.player} : {score.cpu} CPU
+        </div>
+      </div>
       <div className="space-x-2">
         <Button
           onClick={onDeal}

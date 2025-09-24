@@ -62,8 +62,8 @@ def get_win_tile_index(last_tile, tiles_136):
         base = 36 + (int(last_tile[0]) - 1) * 4
     elif last_tile.endswith('s'):
         base = 72 + (int(last_tile[0]) - 1) * 4
-    elif last_tile in ['東', '南', '西', '北', '白', '發', '发', '中']:
-        honor_map = {'東': 0, '南': 1, '西': 2, '北': 3, '白': 4, '發': 5, '发': 5, '中': 6}
+    elif last_tile in ['東', '南', '西', '北', '白', '發', '中']:
+        honor_map = {'東': 0, '南': 1, '西': 2, '北': 3, '白': 4, '發': 5, '中': 6}
         base = 108 + honor_map[last_tile] * 4
     elif last_tile.endswith('z'):
         base = 108 + (int(last_tile[0]) - 1) * 4
@@ -177,7 +177,7 @@ def check_tenpai(tiles):
                 all_possible_tiles.append(f"{num}{suit}")
         
         # 字牌
-        honor_tiles = ['東', '南', '西', '北', '白', '発', '中']
+        honor_tiles = ['東', '南', '西', '北', '白', '發', '中']
         all_possible_tiles.extend(honor_tiles)
         
         waiting_tiles = []

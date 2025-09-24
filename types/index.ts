@@ -12,7 +12,7 @@ export interface Tile {
 export type Zone = 'hand' | 'pool';
 
 // ゲームフェーズを表す型
-export type GamePhase = 'initial' | 'selecting' | 'playing' | 'finished';
+export type GamePhase = 'initial' | 'selecting' | 'playing' | 'finished' | 'draw';
 
 // CPUの情報を表す型
 export interface CpuState {
@@ -29,6 +29,12 @@ export interface WinningInfo {
   winningTile: string;
   han?: number;
   fu?: number;
+}
+
+// スコア情報を表す型
+export interface ScoreInfo {
+  player: number;
+  cpu: number;
 }
 
 // 麻雀の配牌状態を表す型
@@ -48,6 +54,7 @@ export interface MahjongDealState {
   isPlayerTurn: boolean;  // プレイヤーの手番かどうか
   isProcessingWin: boolean; // 和了判定処理中かどうか
   winningInfo: WinningInfo | null; // 和了情報
+  score: ScoreInfo; // スコア情報
 }
 
 // 麻雀の操作を表す型
