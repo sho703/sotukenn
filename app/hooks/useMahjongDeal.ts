@@ -87,15 +87,66 @@ export function useMahjongDeal(): MahjongDealHook {
   const [suggestions, setSuggestions] = useState<TenpaiPattern[] | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
+  // ドラ表示牌を1つ戻す関数（Pythonに送る用）
+  const getDoraForPython = (doraIndicator: string): string => {
+    if (doraIndicator.endsWith('m') || doraIndicator.endsWith('p') || doraIndicator.endsWith('s')) {
+      const num = parseInt(doraIndicator[0]);
+      const suit = doraIndicator[1];
+      return `${num === 1 ? 9 : num - 1}${suit}`;
+    } else if (['東', '南', '西', '北'].includes(doraIndicator)) {
+      // 東→南→西→北→東のサイクル（1つ戻す）
+      const windCycle = ['東', '南', '西', '北'];
+      const currentIndex = windCycle.indexOf(doraIndicator);
+      return windCycle[(currentIndex - 1 + 4) % 4];
+    } else if (['白', '發', '中'].includes(doraIndicator)) {
+      // 白→發→中→白のサイクル（1つ戻す）
+      const dragonCycle = ['白', '發', '中'];
+      const currentIndex = dragonCycle.indexOf(doraIndicator);
+      return dragonCycle[(currentIndex - 1 + 3) % 3];
+    }
+    return doraIndicator;
+  };
+
   // スコア加算と勝利判定（飜数ベース）
   const addScore = (winner: 'player' | 'cpu', han: number) => {
-    // 飜数をそのままスコアに加算（1飜=1ポイント）
-    const points = han || 1; // hanが0の場合は1ポイント
+    // 麻雀の点数計算（飜数ベース）
+    let points = 0;
+
+    if (han >= 13) {
+      points = 13; // 役満
+    } else if (han >= 11) {
+      points = 11; // 三倍満
+    } else if (han >= 8) {
+      points = 8; // 倍満
+    } else if (han >= 6) {
+      points = 6; // 跳満
+    } else if (han >= 5) {
+      points = 5; // 満貫
+    } else if (han >= 4) {
+      points = 4; // 4飜
+    } else if (han >= 3) {
+      points = 3; // 3飜
+    } else if (han >= 2) {
+      points = 2; // 2飜
+    } else {
+      points = 1; // 1飜
+    }
+
+    console.log('スコア計算:', {
+      winner: winner,
+      han: han,
+      calculatedPoints: points
+    });
+
     setScore(prevScore => {
       const newScore = {
         player: winner === 'player' ? prevScore.player + points : prevScore.player,
         cpu: winner === 'cpu' ? prevScore.cpu + points : prevScore.cpu
       };
+      console.log('スコア更新:', {
+        previous: prevScore,
+        new: newScore
+      });
       return newScore;
     });
   };
@@ -217,6 +268,7 @@ export function useMahjongDeal(): MahjongDealHook {
       return;
     }
 
+
     // 聴牌チェック
     try {
       const response = await fetch('/api/check-tenpai', {
@@ -253,13 +305,16 @@ export function useMahjongDeal(): MahjongDealHook {
     }
 
     // 残りの21枚を選択可能な捨て牌として設定
+    // 元のpoolTilesから手牌に含まれていない牌を抽出
     const remainingTiles = poolTiles.filter(tile =>
       !handTiles.some(handTile => handTile.id === tile.id)
     );
 
+    // 手牌はそのまま保持し、poolTilesを残りの牌に更新
     setPoolTiles(remainingTiles);  // 選択可能な捨て牌
     setGamePhase('playing');
     setIsPlayerTurn(true);
+
   };
 
   // ゾーン間移動
@@ -302,10 +357,6 @@ export function useMahjongDeal(): MahjongDealHook {
       // 手牌に移動した場合は自動ソート
       const sortedHandTiles = sortTiles(newToArr);
       setHandTiles(sortedHandTiles);
-      // 手牌が13枚になったかチェック
-      if (sortedHandTiles.length === 13) {
-        completeSelection();
-      }
     }
     setSuggestions(null);
   };
@@ -334,14 +385,18 @@ export function useMahjongDeal(): MahjongDealHook {
       return;
     }
 
+
     // 和了判定処理中フラグを立てる
     setIsProcessingWin(true);
 
     // プレイヤーの捨て牌を記録
     setPlayerDiscards(prev => [...prev, tile]);
+
+    // 捨て牌をpoolTilesから削除（手牌は変更しない）
     const newPoolTiles = poolTiles.filter(t => t.id !== tile.id);
     setPoolTiles(newPoolTiles);
     setIsPlayerTurn(false);
+
 
     // CPUの和了判定（ロン）
     if (tile.type === cpuState.winningTile.type) {
@@ -352,7 +407,7 @@ export function useMahjongDeal(): MahjongDealHook {
           body: JSON.stringify({
             tiles: cpuState.handTiles.map(t => t.type),
             lastTile: tile.type,
-            dora
+            dora: getDoraForPython(dora) // ドラ表示牌を1つ戻して送信
           })
         });
 
@@ -360,6 +415,12 @@ export function useMahjongDeal(): MahjongDealHook {
           const result = await response.json();
           if (result.isWinning) {
             const han = result.han || 1;
+            console.log('CPU和了判定結果:', {
+              han: han,
+              yaku: result.yaku,
+              fu: result.fu,
+              points: result.points
+            });
             addScore('cpu', han);
             setWinningInfo({
               winner: 'cpu',
@@ -408,6 +469,10 @@ export function useMahjongDeal(): MahjongDealHook {
 
     const cpuDiscard = cpuState.discardTiles[cpuDiscards.length];
     setCpuDiscards(prev => [...prev, cpuDiscard]);
+
+    // CPUの捨て牌後に追加の待機時間を設ける
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     setIsPlayerTurn(true);
 
     // 流局判定（CPUの捨て牌後）
@@ -419,13 +484,16 @@ export function useMahjongDeal(): MahjongDealHook {
 
     // プレイヤーの和了判定（ロン）
     try {
+      // 状態の更新が確実に完了するまで待機
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       const response = await fetch('/api/check-win', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           tiles: handTiles.map(t => t.type),
           lastTile: cpuDiscard.type,
-          dora
+          dora: getDoraForPython(dora) // ドラ表示牌を1つ戻して送信
         })
       });
 
@@ -439,6 +507,12 @@ export function useMahjongDeal(): MahjongDealHook {
 
       if (result.isWinning) {
         const han = result.han || 1;
+        console.log('和了判定結果:', {
+          han: han,
+          yaku: result.yaku,
+          fu: result.fu,
+          points: result.points
+        });
         addScore('player', han);
         setWinningInfo({
           winner: 'player',

@@ -103,13 +103,13 @@ export function GameBoard({
   // 捨て牌履歴を表示するヘルパー関数（MahjongGridスタイル）
   const renderDiscardHistory = (discards: Tile[]) => {
     if (discards.length === 0) {
-      return <div className="text-gray-400 text-center">まだ捨て牌がありません</div>;
+      return <div className="text-mahjong-gold-300 text-center font-japanese font-semibold">まだ捨て牌がありません</div>;
     }
 
     return (
       <div className="grid grid-cols-6 gap-2">
         {discards.map((tile, index) => (
-          <div key={tile.id}>
+          <div key={`discard-${tile.id}-${index}`}>
             <MahjongTile
               tile={tile}
               selected={false}
@@ -181,71 +181,75 @@ export function GameBoard({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="container mx-auto p-4">
+      <div className="container mx-auto p-4 relative">
         {/* 局数表示（左上） */}
-        <div className="absolute top-4 left-4 text-lg font-semibold text-gray-700">
+        <div className="absolute top-4 left-4 bg-mahjong-gold-500/90 backdrop-blur-sm text-white px-4 py-2 rounded-lg shadow-mahjong-button font-japanese font-bold text-lg border-2 border-mahjong-gold-400">
           第{currentRound}局
         </div>
 
         {/* スコア表示（真ん中上） */}
-        <div className="text-center mb-6">
-          <div className="text-xl font-semibold text-gray-700">
-            プレイヤー {score.player} : {score.cpu} CPU
+        <div className="text-center mb-8">
+          <div className="bg-black/30 backdrop-blur-sm text-white px-8 py-4 rounded-2xl shadow-mahjong-button font-japanese font-bold text-2xl border-2 border-mahjong-gold-400/50 inline-block">
+            <span className="text-mahjong-blue-300">プレイヤー</span>
+            <span className="mx-4 text-mahjong-gold-300">{score.player}</span>
+            <span className="text-mahjong-gold-400">:</span>
+            <span className="mx-4 text-mahjong-gold-300">{score.cpu}</span>
+            <span className="text-mahjong-red-300">CPU</span>
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-8">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
-              {error}
+            <div className="bg-mahjong-red-500/90 backdrop-blur-sm border-2 border-mahjong-red-400 text-white px-6 py-4 rounded-xl shadow-mahjong-button font-japanese font-semibold text-center">
+              ⚠️ {error}
             </div>
           )}
 
           {gamePhase === 'selecting' && (
             <>
               {/* 手牌選択画面のボタン */}
-              <div className="flex justify-center gap-4 mb-6">
+              <div className="flex justify-center gap-6 mb-8">
                 {!hasDealt && (
                   <button
                     onClick={dealTiles}
                     disabled={isAnalyzing}
-                    className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-300 font-semibold"
+                    className="px-8 py-4 bg-gradient-to-r from-mahjong-table-600 to-mahjong-table-700 text-white rounded-xl hover:from-mahjong-table-700 hover:to-mahjong-table-800 disabled:from-gray-600 disabled:to-gray-700 font-japanese font-bold text-lg shadow-mahjong-button hover:shadow-mahjong-tile-hover transition-all duration-200 transform hover:scale-105 disabled:transform-none disabled:scale-100 border-2 border-mahjong-gold-400/50"
                   >
-                    配牌する
+                    🎲 配牌する
                   </button>
                 )}
                 <button
                   onClick={analyzeTenpai}
                   disabled={!hasDealt || isAnalyzing}
-                  className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 font-semibold"
+                  className="px-8 py-4 bg-gradient-to-r from-mahjong-blue-600 to-mahjong-blue-700 text-white rounded-xl hover:from-mahjong-blue-700 hover:to-mahjong-blue-800 disabled:from-gray-600 disabled:to-gray-700 font-japanese font-bold text-lg shadow-mahjong-button hover:shadow-mahjong-tile-hover transition-all duration-200 transform hover:scale-105 disabled:transform-none disabled:scale-100 border-2 border-mahjong-gold-400/50"
                 >
-                  {isAnalyzing ? '分析中...' : '聴牌形提案'}
+                  {isAnalyzing ? '🔍 分析中...' : '💡 聴牌形提案'}
                 </button>
               </div>
 
-              <section>
-                <div className="flex justify-between items-center mb-2">
-                  <h2 className="font-semibold">手牌選択（13枚を選んでください）</h2>
-                  <div className="flex gap-2">
+              <section className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="font-japanese font-bold text-xl text-white">手牌選択（13枚を選んでください）</h2>
+                  <div className="flex gap-3">
                     <button
                       onClick={reset}
                       disabled={handTiles.length === 0}
-                      className={`px-4 py-2 rounded ${handTiles.length > 0
-                        ? 'bg-red-500 text-white hover:bg-red-600'
-                        : 'bg-gray-300 text-gray-500'
+                      className={`px-6 py-3 rounded-xl font-japanese font-semibold transition-all duration-200 transform hover:scale-105 disabled:transform-none disabled:scale-100 ${handTiles.length > 0
+                        ? 'bg-gradient-to-r from-mahjong-red-600 to-mahjong-red-700 text-white hover:from-mahjong-red-700 hover:to-mahjong-red-800 shadow-mahjong-button hover:shadow-mahjong-tile-hover border-2 border-mahjong-red-400/50'
+                        : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                         }`}
                     >
-                      リセット
+                      🔄 リセット
                     </button>
                     <button
                       onClick={completeSelection}
                       disabled={handTiles.length !== 13}
-                      className={`px-4 py-2 rounded ${handTiles.length === 13
-                        ? 'bg-blue-500 text-white hover:bg-blue-600'
-                        : 'bg-gray-300 text-gray-500'
+                      className={`px-6 py-3 rounded-xl font-japanese font-semibold transition-all duration-200 transform hover:scale-105 disabled:transform-none disabled:scale-100 ${handTiles.length === 13
+                        ? 'bg-gradient-to-r from-mahjong-gold-600 to-mahjong-gold-700 text-white hover:from-mahjong-gold-700 hover:to-mahjong-gold-800 shadow-mahjong-button hover:shadow-mahjong-tile-hover border-2 border-mahjong-gold-400/50'
+                        : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                         }`}
                     >
-                      選択完了 ({handTiles.length}/13枚)
+                      ✅ 選択完了 ({handTiles.length}/13枚)
                     </button>
                   </div>
                 </div>
@@ -258,8 +262,9 @@ export function GameBoard({
                 </div>
               </section>
 
-              <section>
-                <div className="flex justify-between items-center mb-2">
+              <section className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="font-japanese font-bold text-xl text-white">牌プール</h2>
                   <DoraIndicator dora={dora} />
                 </div>
                 <div className="max-w-full overflow-x-auto">
@@ -276,21 +281,24 @@ export function GameBoard({
           {gamePhase === 'playing' && (
             <>
               {/* 手番表示 */}
-              <div className={`p-4 rounded-lg text-center font-semibold ${isProcessingWin ? 'bg-yellow-100 text-yellow-800' :
-                isPlayerTurn ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+              <div className={`p-6 rounded-2xl text-center font-japanese font-bold text-xl shadow-mahjong-button border-2 ${isProcessingWin
+                ? 'bg-gradient-to-r from-mahjong-gold-500 to-mahjong-gold-600 text-white border-mahjong-gold-400'
+                : isPlayerTurn
+                  ? 'bg-gradient-to-r from-mahjong-blue-500 to-mahjong-blue-600 text-white border-mahjong-blue-400'
+                  : 'bg-gradient-to-r from-mahjong-red-500 to-mahjong-red-600 text-white border-mahjong-red-400'
                 }`}>
-                {isProcessingWin ? '和了判定中...' :
-                  isPlayerTurn ? 'あなたの番です' : 'CPUの番です'}
+                {isProcessingWin ? '🔍 和了判定中...' :
+                  isPlayerTurn ? '🎯 あなたの番です' : '🤖 CPUの番です'}
               </div>
 
               {/* CPU手牌 */}
-              <section>
-                <h2 className="mb-2 font-semibold">CPU手牌</h2>
-                <div className="flex gap-1 bg-gray-100 p-4 rounded-lg">
+              <section className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
+                <h2 className="mb-4 font-japanese font-bold text-xl text-white">CPU手牌</h2>
+                <div className="flex gap-1 bg-mahjong-ivory-500/20 p-4 rounded-xl border-2 border-mahjong-ivory-400/30">
                   {Array.from({ length: 13 }, (_, i) => (
                     <div
                       key={i}
-                      className="w-10 h-14 sm:w-12 sm:h-16 md:w-14 md:h-20 bg-gray-300 rounded border"
+                      className="w-10 h-14 sm:w-12 sm:h-16 md:w-14 md:h-20 bg-mahjong-ivory-500 rounded-lg border-2 border-mahjong-ivory-600 shadow-mahjong-tile"
                     />
                   ))}
                 </div>
@@ -298,30 +306,30 @@ export function GameBoard({
 
               {/* 捨て牌履歴 */}
               <div className="grid grid-cols-2 gap-8">
-                <section>
-                  <h2 className="mb-2 font-semibold">あなたの捨て牌</h2>
-                  <div className="bg-blue-50 p-4 rounded-lg min-h-20 border border-blue-200">
+                <section className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
+                  <h2 className="mb-4 font-japanese font-bold text-xl text-mahjong-blue-300">あなたの捨て牌</h2>
+                  <div className="bg-mahjong-blue-500/20 p-4 rounded-xl min-h-20 border-2 border-mahjong-blue-400/30">
                     {renderDiscardHistory(playerDiscards)}
                   </div>
                 </section>
-                <section>
-                  <h2 className="mb-2 font-semibold">CPUの捨て牌</h2>
-                  <div className="bg-red-50 p-4 rounded-lg min-h-20 border border-red-200">
+                <section className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
+                  <h2 className="mb-4 font-japanese font-bold text-xl text-mahjong-red-300">CPUの捨て牌</h2>
+                  <div className="bg-mahjong-red-500/20 p-4 rounded-xl min-h-20 border-2 border-mahjong-red-400/30">
                     {renderDiscardHistory(cpuDiscards)}
                   </div>
                 </section>
               </div>
 
               {/* プレイヤーの手牌 */}
-              <section>
-                <div className="flex justify-between items-center mb-2">
-                  <h2 className="font-semibold">あなたの手牌</h2>
+              <section className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="font-japanese font-bold text-xl text-mahjong-blue-300">あなたの手牌</h2>
                   <DoraIndicator dora={dora} />
                 </div>
-                <div className="flex gap-2 bg-blue-50 p-4 rounded-lg">
+                <div className="flex gap-2 bg-mahjong-blue-500/20 p-4 rounded-xl border-2 border-mahjong-blue-400/30">
                   {handTiles.map((tile, index) => (
                     <MahjongTile
-                      key={tile.id}
+                      key={`hand-${tile.id}-${index}`}
                       tile={tile}
                       selected
                       index={index}
@@ -332,16 +340,16 @@ export function GameBoard({
               </section>
 
               {/* 選択可能な捨て牌 */}
-              <section>
-                <h2 className="mb-2 font-semibold">
+              <section className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
+                <h2 className="mb-4 font-japanese font-bold text-xl text-white">
                   捨て牌を選択してください（{poolTiles.length}枚）
-                  {isProcessingWin ? <span className="text-yellow-500 ml-2">（和了判定中...）</span> :
-                    !isPlayerTurn && <span className="text-gray-500 ml-2">（CPUの番です）</span>}
+                  {isProcessingWin ? <span className="text-mahjong-gold-300 ml-2">（和了判定中...）</span> :
+                    !isPlayerTurn && <span className="text-gray-400 ml-2">（CPUの番です）</span>}
                 </h2>
-                <div className="flex flex-wrap gap-2 bg-yellow-50 p-4 rounded-lg">
+                <div className="flex flex-wrap gap-2 bg-mahjong-gold-500/20 p-4 rounded-xl border-2 border-mahjong-gold-400/30">
                   {poolTiles.map((tile, index) => (
                     <div
-                      key={tile.id}
+                      key={`pool-${tile.id}-${index}`}
                       onClick={() => {
                         if (isPlayerTurn && !isProcessingWin) {
                           discardTile(tile);
@@ -367,37 +375,37 @@ export function GameBoard({
 
           {/* 和了表示 */}
           {gamePhase === 'finished' && winningInfo && (
-            <section className="mt-4">
-              <div className={`p-6 rounded-lg text-center ${winningInfo.winner === 'player'
-                ? 'bg-blue-100 border-2 border-blue-300'
-                : 'bg-red-100 border-2 border-red-300'
+            <section className="mt-8">
+              <div className={`p-8 rounded-2xl text-center shadow-mahjong-tile-hover border-4 font-japanese ${winningInfo.winner === 'player'
+                ? 'bg-gradient-to-br from-mahjong-blue-500 to-mahjong-blue-700 border-mahjong-blue-400'
+                : 'bg-gradient-to-br from-mahjong-red-500 to-mahjong-red-700 border-mahjong-red-400'
                 }`}>
-                <h2 className="text-3xl font-bold mb-4">
+                <h2 className="text-4xl font-bold mb-6 text-white">
                   {winningInfo.winner === 'player' ? '🎉 あなたの和了！' : '😔 CPUの和了'}
                 </h2>
 
                 {/* 勝利判定 */}
                 {(score.player >= 5 || score.cpu >= 5) && (
-                  <div className="mb-6 p-4 bg-yellow-100 border-2 border-yellow-300 rounded-lg">
-                    <h3 className="text-2xl font-bold text-yellow-800 mb-2">
+                  <div className="mb-6 p-6 bg-gradient-to-r from-mahjong-gold-500 to-mahjong-gold-600 border-4 border-mahjong-gold-400 rounded-2xl shadow-mahjong-button">
+                    <h3 className="text-3xl font-bold text-white mb-2 font-japanese">
                       🏆 ゲーム終了！
                     </h3>
-                    <p className="text-lg text-yellow-700">
+                    <p className="text-xl text-white font-japanese">
                       {score.player >= 5 ? 'プレイヤーの勝利！' : 'CPUの勝利！'}
                     </p>
                   </div>
                 )}
 
-                <div className="mb-4">
+                <div className="mb-6">
                   {/* ポイント表示 */}
-                  <div className="text-2xl font-bold mb-4 text-blue-600">
+                  <div className="text-3xl font-bold mb-6 text-mahjong-gold-300 font-japanese">
                     {winningInfo.han ? `${winningInfo.han}ポイント` : '1ポイント'}
                   </div>
 
                   {/* 最終形表示 */}
-                  <div className="mb-4">
-                    <div className="font-semibold mb-2">最終形：</div>
-                    <div className="flex justify-center items-center gap-1 mb-2">
+                  <div className="mb-6">
+                    <div className="font-japanese font-bold mb-4 text-white text-xl">最終形：</div>
+                    <div className="flex justify-center items-center gap-1 mb-4 bg-mahjong-ivory-500/20 p-4 rounded-xl border-2 border-mahjong-ivory-400/30">
                       {winningInfo.winner === 'player' ?
                         // プレイヤーの最終形（手牌 + 和了牌）
                         [...handTiles, { id: 'winning-player', type: winningInfo.winningTile, imagePath: getTileImagePath(winningInfo.winningTile) }].map((tile, index) => (
@@ -427,19 +435,19 @@ export function GameBoard({
                         ))
                       }
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-lg text-mahjong-gold-200 font-japanese font-semibold">
                       和了牌: {winningInfo.winningTile}
                     </div>
                   </div>
 
                   {/* 成立役表示 */}
-                  <div className="mb-4">
-                    <div className="font-semibold mb-2">成立した役：</div>
-                    <div className="flex flex-wrap justify-center gap-2">
+                  <div className="mb-6">
+                    <div className="font-japanese font-bold mb-4 text-white text-xl">成立した役：</div>
+                    <div className="flex flex-wrap justify-center gap-3">
                       {translateYaku(winningInfo.yaku).map((yaku, index) => (
                         <span
                           key={index}
-                          className="px-3 py-1 bg-white rounded-full text-sm font-medium border"
+                          className="px-4 py-2 bg-mahjong-gold-500/90 text-white rounded-full text-sm font-japanese font-semibold border-2 border-mahjong-gold-400 shadow-mahjong-tile"
                         >
                           {yaku}
                         </span>
@@ -448,20 +456,20 @@ export function GameBoard({
                   </div>
                 </div>
 
-                <div className="flex justify-center gap-4">
+                <div className="flex justify-center gap-6">
                   {score.player >= 5 || score.cpu >= 5 ? (
                     <button
                       onClick={endGame}
-                      className="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold"
+                      className="px-8 py-4 bg-gradient-to-r from-mahjong-table-700 to-mahjong-table-800 text-white rounded-xl hover:from-mahjong-table-800 hover:to-mahjong-table-900 transition-all duration-200 font-japanese font-bold text-lg shadow-mahjong-button hover:shadow-mahjong-tile-hover transform hover:scale-105 border-2 border-mahjong-gold-400/50"
                     >
-                      タイトルに戻る
+                      🏠 タイトルに戻る
                     </button>
                   ) : (
                     <button
                       onClick={nextRound}
-                      className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-semibold"
+                      className="px-8 py-4 bg-gradient-to-r from-mahjong-gold-600 to-mahjong-gold-700 text-white rounded-xl hover:from-mahjong-gold-700 hover:to-mahjong-gold-800 transition-all duration-200 font-japanese font-bold text-lg shadow-mahjong-button hover:shadow-mahjong-tile-hover transform hover:scale-105 border-2 border-mahjong-gold-400/50"
                     >
-                      次の局へ
+                      ➡️ 次の局へ
                     </button>
                   )}
                 </div>
@@ -471,31 +479,31 @@ export function GameBoard({
 
           {/* 流局表示 */}
           {gamePhase === 'draw' && (
-            <section className="mt-4">
-              <div className="p-6 rounded-lg text-center bg-gray-100 border-2 border-gray-300">
-                <h2 className="text-3xl font-bold mb-4 text-gray-700">🀄 流局（引き分け）</h2>
-                <div className="text-lg mb-6 text-gray-600">
-                  <div className="mb-2">捨て牌候補が尽きました</div>
-                  <div className="mb-2">プレイヤー：{playerDiscards.length}枚捨て牌</div>
-                  <div className="mb-2">CPU：{cpuDiscards.length}枚捨て牌</div>
-                  <div className="text-sm text-gray-500 mt-4">
+            <section className="mt-8">
+              <div className="p-8 rounded-2xl text-center bg-gradient-to-br from-mahjong-table-600 to-mahjong-table-700 border-4 border-mahjong-gold-400 shadow-mahjong-tile-hover font-japanese">
+                <h2 className="text-4xl font-bold mb-6 text-white">🀄 流局（引き分け）</h2>
+                <div className="text-xl mb-8 text-mahjong-gold-200">
+                  <div className="mb-3">捨て牌候補が尽きました</div>
+                  <div className="mb-3">プレイヤー：{playerDiscards.length}枚捨て牌</div>
+                  <div className="mb-3">CPU：{cpuDiscards.length}枚捨て牌</div>
+                  <div className="text-lg text-mahjong-gold-300 mt-6 font-semibold">
                     ポイントは加算されません
                   </div>
                 </div>
-                <div className="flex justify-center gap-4">
+                <div className="flex justify-center gap-6">
                   {score.player >= 5 || score.cpu >= 5 ? (
                     <button
                       onClick={endGame}
-                      className="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold"
+                      className="px-8 py-4 bg-gradient-to-r from-mahjong-table-700 to-mahjong-table-800 text-white rounded-xl hover:from-mahjong-table-800 hover:to-mahjong-table-900 transition-all duration-200 font-japanese font-bold text-lg shadow-mahjong-button hover:shadow-mahjong-tile-hover transform hover:scale-105 border-2 border-mahjong-gold-400/50"
                     >
-                      タイトルに戻る
+                      🏠 タイトルに戻る
                     </button>
                   ) : (
                     <button
                       onClick={nextRound}
-                      className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-semibold"
+                      className="px-8 py-4 bg-gradient-to-r from-mahjong-gold-600 to-mahjong-gold-700 text-white rounded-xl hover:from-mahjong-gold-700 hover:to-mahjong-gold-800 transition-all duration-200 font-japanese font-bold text-lg shadow-mahjong-button hover:shadow-mahjong-tile-hover transform hover:scale-105 border-2 border-mahjong-gold-400/50"
                     >
-                      次の局へ
+                      ➡️ 次の局へ
                     </button>
                   )}
                 </div>
@@ -505,15 +513,15 @@ export function GameBoard({
 
           {suggestions && suggestions.length > 0 && (
             <section className="mt-8">
-              <h2 className="text-xl font-bold mb-4">聴牌形提案</h2>
-              <div className="space-y-6">
+              <h2 className="text-3xl font-bold mb-6 text-white font-japanese text-center">聴牌形提案</h2>
+              <div className="space-y-8">
                 {suggestions.map((pattern, patternIndex) => (
-                  <div key={patternIndex} className="bg-white p-4 rounded-lg shadow">
-                    <h3 className="font-semibold mb-2">提案 {patternIndex + 1}</h3>
-                    <div className="grid grid-cols-1 gap-4">
+                  <div key={patternIndex} className="bg-black/30 backdrop-blur-sm p-6 rounded-2xl shadow-mahjong-tile border-2 border-mahjong-gold-400/30">
+                    <h3 className="font-japanese font-bold mb-4 text-mahjong-gold-300 text-xl">提案 {patternIndex + 1}</h3>
+                    <div className="grid grid-cols-1 gap-6">
                       <div>
-                        <p className="text-sm text-gray-600 mb-1">手牌</p>
-                        <div className="flex flex-wrap gap-2">
+                        <p className="text-lg text-mahjong-gold-200 mb-3 font-japanese font-semibold">手牌</p>
+                        <div className="flex flex-wrap gap-2 bg-mahjong-ivory-500/20 p-4 rounded-xl border-2 border-mahjong-ivory-400/30">
                           {pattern.tiles.map((tile, index) => (
                             <div key={index} className="inline-flex w-10 h-14 sm:w-12 sm:h-16 md:w-14 md:h-20">
                               <div className="relative w-full h-full flex items-center justify-center">
@@ -533,10 +541,10 @@ export function GameBoard({
                         </div>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600 mb-1">待ち牌と成立する役</p>
-                        <div className="space-y-2">
+                        <p className="text-lg text-mahjong-gold-200 mb-3 font-japanese font-semibold">待ち牌と成立する役</p>
+                        <div className="space-y-4">
                           {pattern.waitingTiles.map((wait, waitIndex) => (
-                            <div key={waitIndex} className="flex items-start gap-2">
+                            <div key={waitIndex} className="flex items-start gap-4 bg-mahjong-table-500/20 p-4 rounded-xl border-2 border-mahjong-table-400/30">
                               <div className="inline-flex w-10 h-14 sm:w-12 sm:h-16 md:w-14 md:h-20">
                                 <div className="relative w-full h-full flex items-center justify-center">
                                   <div className="relative w-[85%] h-[85%]">
@@ -551,9 +559,9 @@ export function GameBoard({
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex flex-wrap gap-1">
+                              <div className="flex flex-wrap gap-2">
                                 {wait.yaku.map((yaku, yakuIndex) => (
-                                  <span key={yakuIndex} className="bg-green-100 px-2 py-1 rounded text-sm">
+                                  <span key={yakuIndex} className="bg-mahjong-gold-500/90 text-white px-3 py-1 rounded-full text-sm font-japanese font-semibold border-2 border-mahjong-gold-400 shadow-mahjong-tile">
                                     {yaku}
                                   </span>
                                 ))}

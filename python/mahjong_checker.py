@@ -137,6 +137,7 @@ def check_win(tiles, last_tile, dora):
             for yaku_item in result.yaku:
                 yaku_names.append(yaku_item.name)
         
+        
         return {
             "isWinning": True,
             "points": result.cost['main'] if result.cost else 0,

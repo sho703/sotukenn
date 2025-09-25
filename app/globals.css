@@ -76,6 +76,62 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* 麻雀風カラーパレット */
+  --mahjong-table-50: #f0f9f0;
+  --mahjong-table-100: #dcf2dc;
+  --mahjong-table-200: #bce5bc;
+  --mahjong-table-300: #8dd18d;
+  --mahjong-table-400: #5bb85b;
+  --mahjong-table-500: #3a9d3a;
+  --mahjong-table-600: #2d7d2d;
+  --mahjong-table-700: #256325;
+  --mahjong-table-800: #215021;
+  --mahjong-table-900: #1e421e;
+
+  --mahjong-red-50: #fef2f2;
+  --mahjong-red-100: #fee2e2;
+  --mahjong-red-200: #fecaca;
+  --mahjong-red-300: #fca5a5;
+  --mahjong-red-400: #f87171;
+  --mahjong-red-500: #ef4444;
+  --mahjong-red-600: #dc2626;
+  --mahjong-red-700: #b91c1c;
+  --mahjong-red-800: #991b1b;
+  --mahjong-red-900: #7f1d1d;
+
+  --mahjong-blue-50: #eff6ff;
+  --mahjong-blue-100: #dbeafe;
+  --mahjong-blue-200: #bfdbfe;
+  --mahjong-blue-300: #93c5fd;
+  --mahjong-blue-400: #60a5fa;
+  --mahjong-blue-500: #3b82f6;
+  --mahjong-blue-600: #2563eb;
+  --mahjong-blue-700: #1d4ed8;
+  --mahjong-blue-800: #1e40af;
+  --mahjong-blue-900: #1e3a8a;
+
+  --mahjong-gold-50: #fffbeb;
+  --mahjong-gold-100: #fef3c7;
+  --mahjong-gold-200: #fde68a;
+  --mahjong-gold-300: #fcd34d;
+  --mahjong-gold-400: #fbbf24;
+  --mahjong-gold-500: #f59e0b;
+  --mahjong-gold-600: #d97706;
+  --mahjong-gold-700: #b45309;
+  --mahjong-gold-800: #92400e;
+  --mahjong-gold-900: #78350f;
+
+  --mahjong-ivory-50: #fefdfb;
+  --mahjong-ivory-100: #fdf9f0;
+  --mahjong-ivory-200: #faf2e0;
+  --mahjong-ivory-300: #f6e8c7;
+  --mahjong-ivory-400: #f0d9a8;
+  --mahjong-ivory-500: #e8c785;
+  --mahjong-ivory-600: #d4b066;
+  --mahjong-ivory-700: #b8944f;
+  --mahjong-ivory-800: #9a7a3f;
+  --mahjong-ivory-900: #7d6334;
 }
 
 .dark {
@@ -116,7 +172,33 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply text-white;
+    background: #3a9d3a;
+    background-image:
+      radial-gradient(ellipse at center, #3a9d3a 0%, #2d7d2d 50%, #1e421e 100%),
+      repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.05) 10px, rgba(255, 255, 255, 0.05) 20px);
+    min-height: 100vh;
+    font-family: var(--font-noto-sans-jp), 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+  }
+
+  /* 麻雀風のスクロールバー */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #2d7d2d;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #f59e0b;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #d97706;
   }
 }

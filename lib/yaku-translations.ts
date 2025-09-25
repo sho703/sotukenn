@@ -43,7 +43,7 @@ export const yakuTranslations: Record<string, string> = {
   // 2翻役
   'Double Riichi': 'ダブル立直',
   'Chiitoitsu': '七対子',
-  'Chanta': '混全帯么九',
+  'Chantai': '混全帯么九',
   'Ittsu': '一気通貫',
   'Toitoi': '対々和',
   'San Ankou': '三暗刻',
