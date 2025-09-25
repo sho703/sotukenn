@@ -13,6 +13,7 @@ import { TitleScreen } from './title-screen';
 import Image from 'next/image';
 import { getTileImagePath } from '@/app/lib/mahjong';
 import { translateYaku } from '@/lib/yaku-translations';
+import { Button } from '@/components/ui/button';
 
 interface Props {
   // 基本状態
@@ -210,47 +211,91 @@ export function GameBoard({
               {/* 手牌選択画面のボタン */}
               <div className="flex justify-center gap-6 mb-8">
                 {!hasDealt && (
-                  <button
+                  <Button
                     onClick={dealTiles}
                     disabled={isAnalyzing}
-                    className="px-8 py-4 bg-gradient-to-r from-mahjong-table-600 to-mahjong-table-700 text-white rounded-xl hover:from-mahjong-table-700 hover:to-mahjong-table-800 disabled:from-gray-600 disabled:to-gray-700 font-japanese font-bold text-lg shadow-mahjong-button hover:shadow-mahjong-tile-hover transition-all duration-200 transform hover:scale-105 disabled:transform-none disabled:scale-100 border-2 border-mahjong-gold-400/50"
+                    variant="mahjong"
+                    className="px-8 py-4 bg-gradient-to-r from-mahjong-table-600 to-mahjong-table-700 text-white rounded-xl disabled:from-gray-600 disabled:to-gray-700 border-2 border-mahjong-gold-400/50"
+                    onMouseEnter={(e) => {
+                      if (!e.currentTarget.disabled) {
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                        e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06)';
+                    }}
                   >
                     🎲 配牌する
-                  </button>
+                  </Button>
                 )}
-                <button
+                <Button
                   onClick={analyzeTenpai}
                   disabled={!hasDealt || isAnalyzing}
-                  className="px-8 py-4 bg-gradient-to-r from-mahjong-blue-600 to-mahjong-blue-700 text-white rounded-xl hover:from-mahjong-blue-700 hover:to-mahjong-blue-800 disabled:from-gray-600 disabled:to-gray-700 font-japanese font-bold text-lg shadow-mahjong-button hover:shadow-mahjong-tile-hover transition-all duration-200 transform hover:scale-105 disabled:transform-none disabled:scale-100 border-2 border-mahjong-gold-400/50"
+                  variant="mahjong"
+                  className="px-8 py-4 bg-gradient-to-r from-mahjong-blue-600 to-mahjong-blue-700 text-white rounded-xl disabled:from-gray-600 disabled:to-gray-700 border-2 border-mahjong-gold-400/50"
+                  onMouseEnter={(e) => {
+                    if (!e.currentTarget.disabled) {
+                      e.currentTarget.style.transform = 'scale(1.05)';
+                      e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06)';
+                  }}
                 >
                   {isAnalyzing ? '🔍 分析中...' : '💡 聴牌形提案'}
-                </button>
+                </Button>
               </div>
 
               <section className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="font-japanese font-bold text-xl text-white">手牌選択（13枚を選んでください）</h2>
                   <div className="flex gap-3">
-                    <button
+                    <Button
                       onClick={reset}
                       disabled={handTiles.length === 0}
-                      className={`px-6 py-3 rounded-xl font-japanese font-semibold transition-all duration-200 transform hover:scale-105 disabled:transform-none disabled:scale-100 ${handTiles.length > 0
-                        ? 'bg-gradient-to-r from-mahjong-red-600 to-mahjong-red-700 text-white hover:from-mahjong-red-700 hover:to-mahjong-red-800 shadow-mahjong-button hover:shadow-mahjong-tile-hover border-2 border-mahjong-red-400/50'
+                      variant="mahjong"
+                      className={`px-6 py-3 rounded-xl font-semibold ${handTiles.length > 0
+                        ? 'bg-gradient-to-r from-mahjong-red-600 to-mahjong-red-700 text-white border-2 border-mahjong-red-400/50'
                         : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                         }`}
+                      onMouseEnter={(e) => {
+                        if (!e.currentTarget.disabled) {
+                          e.currentTarget.style.transform = 'scale(1.05)';
+                          e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06)';
+                      }}
                     >
                       🔄 リセット
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={completeSelection}
                       disabled={handTiles.length !== 13}
-                      className={`px-6 py-3 rounded-xl font-japanese font-semibold transition-all duration-200 transform hover:scale-105 disabled:transform-none disabled:scale-100 ${handTiles.length === 13
-                        ? 'bg-gradient-to-r from-mahjong-gold-600 to-mahjong-gold-700 text-white hover:from-mahjong-gold-700 hover:to-mahjong-gold-800 shadow-mahjong-button hover:shadow-mahjong-tile-hover border-2 border-mahjong-gold-400/50'
+                      variant="mahjong"
+                      className={`px-6 py-3 rounded-xl font-semibold ${handTiles.length === 13
+                        ? 'bg-gradient-to-r from-mahjong-gold-600 to-mahjong-gold-700 text-white border-2 border-mahjong-gold-400/50'
                         : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                         }`}
+                      onMouseEnter={(e) => {
+                        if (!e.currentTarget.disabled) {
+                          e.currentTarget.style.transform = 'scale(1.05)';
+                          e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06)';
+                      }}
                     >
                       ✅ 選択完了 ({handTiles.length}/13枚)
-                    </button>
+                    </Button>
                   </div>
                 </div>
                 <div className="max-w-full overflow-x-auto">
@@ -458,19 +503,37 @@ export function GameBoard({
 
                 <div className="flex justify-center gap-6">
                   {score.player >= 5 || score.cpu >= 5 ? (
-                    <button
+                    <Button
                       onClick={endGame}
-                      className="px-8 py-4 bg-gradient-to-r from-mahjong-table-700 to-mahjong-table-800 text-white rounded-xl hover:from-mahjong-table-800 hover:to-mahjong-table-900 transition-all duration-200 font-japanese font-bold text-lg shadow-mahjong-button hover:shadow-mahjong-tile-hover transform hover:scale-105 border-2 border-mahjong-gold-400/50"
+                      variant="mahjong"
+                      className="px-8 py-4 bg-gradient-to-r from-mahjong-table-700 to-mahjong-table-800 text-white rounded-xl border-2 border-mahjong-gold-400/50"
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                        e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06)';
+                      }}
                     >
                       🏠 タイトルに戻る
-                    </button>
+                    </Button>
                   ) : (
-                    <button
+                    <Button
                       onClick={nextRound}
-                      className="px-8 py-4 bg-gradient-to-r from-mahjong-gold-600 to-mahjong-gold-700 text-white rounded-xl hover:from-mahjong-gold-700 hover:to-mahjong-gold-800 transition-all duration-200 font-japanese font-bold text-lg shadow-mahjong-button hover:shadow-mahjong-tile-hover transform hover:scale-105 border-2 border-mahjong-gold-400/50"
+                      variant="mahjong"
+                      className="px-8 py-4 bg-gradient-to-r from-mahjong-gold-600 to-mahjong-gold-700 text-white rounded-xl border-2 border-mahjong-gold-400/50"
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                        e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06)';
+                      }}
                     >
                       ➡️ 次の局へ
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>
@@ -492,19 +555,37 @@ export function GameBoard({
                 </div>
                 <div className="flex justify-center gap-6">
                   {score.player >= 5 || score.cpu >= 5 ? (
-                    <button
+                    <Button
                       onClick={endGame}
-                      className="px-8 py-4 bg-gradient-to-r from-mahjong-table-700 to-mahjong-table-800 text-white rounded-xl hover:from-mahjong-table-800 hover:to-mahjong-table-900 transition-all duration-200 font-japanese font-bold text-lg shadow-mahjong-button hover:shadow-mahjong-tile-hover transform hover:scale-105 border-2 border-mahjong-gold-400/50"
+                      variant="mahjong"
+                      className="px-8 py-4 bg-gradient-to-r from-mahjong-table-700 to-mahjong-table-800 text-white rounded-xl border-2 border-mahjong-gold-400/50"
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                        e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06)';
+                      }}
                     >
                       🏠 タイトルに戻る
-                    </button>
+                    </Button>
                   ) : (
-                    <button
+                    <Button
                       onClick={nextRound}
-                      className="px-8 py-4 bg-gradient-to-r from-mahjong-gold-600 to-mahjong-gold-700 text-white rounded-xl hover:from-mahjong-gold-700 hover:to-mahjong-gold-800 transition-all duration-200 font-japanese font-bold text-lg shadow-mahjong-button hover:shadow-mahjong-tile-hover transform hover:scale-105 border-2 border-mahjong-gold-400/50"
+                      variant="mahjong"
+                      className="px-8 py-4 bg-gradient-to-r from-mahjong-gold-600 to-mahjong-gold-700 text-white rounded-xl border-2 border-mahjong-gold-400/50"
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                        e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06)';
+                      }}
                     >
                       ➡️ 次の局へ
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>

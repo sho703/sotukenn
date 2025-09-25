@@ -23,12 +23,9 @@ export function TitleScreen({ onStartGame }: Props) {
         {/* メインタイトル */}
         <div className="space-y-6">
           <div className="relative">
-            <h1 className="text-8xl font-bold text-mahjong-gold-400 mb-4 font-serif-jp drop-shadow-2xl">
+            <h1 className="text-8xl font-bold text-mahjong-gold-400 mb-4 font-serif-jp">
               🀄 麻雀
             </h1>
-            <div className="absolute -top-2 -left-2 w-full h-full text-8xl font-bold text-mahjong-gold-600 opacity-30 -z-10">
-              🀄 麻雀
-            </div>
           </div>
 
           <div className="space-y-2">
@@ -59,7 +56,15 @@ export function TitleScreen({ onStartGame }: Props) {
           <Button
             onClick={onStartGame}
             size="lg"
-            className="px-16 py-6 text-2xl font-bold bg-gradient-to-r from-mahjong-gold-500 to-mahjong-gold-600 hover:from-mahjong-gold-600 hover:to-mahjong-gold-700 text-white rounded-2xl shadow-mahjong-button hover:shadow-mahjong-tile-hover transition-all duration-300 transform hover:scale-105 font-japanese border-2 border-mahjong-gold-400"
+            className="px-16 py-6 text-2xl font-bold bg-gradient-to-r from-mahjong-gold-500 to-mahjong-gold-600 text-white rounded-2xl shadow-mahjong-button transition-all duration-300 transform font-japanese border-2 border-mahjong-gold-400"
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.05)';
+              e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06)';
+            }}
           >
             🎮 ゲームスタート
           </Button>
