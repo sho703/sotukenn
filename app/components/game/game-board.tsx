@@ -7,7 +7,7 @@ import { MahjongGrid } from './mahjong-grid';
 import { MahjongTile } from './mahjong-tile';
 import { DoraIndicator } from './dora-indicator';
 import { Tile } from './types';
-import { TenpaiPattern, WinningInfo, ScoreInfo } from '@/types';
+import { TenpaiPattern, WinningInfo, ScoreInfo, YakuAnalysis, Melds } from '@/types';
 import { GameHeader } from './game-header';
 import { TitleScreen } from './title-screen';
 import Image from 'next/image';
@@ -592,68 +592,167 @@ export function GameBoard({
             </section>
           )}
 
-          {suggestions && suggestions.length > 0 && (
+          {suggestions && suggestions.length > 0 && gamePhase !== 'playing' && (
             <section className="mt-8">
-              <h2 className="text-3xl font-bold mb-6 text-white font-japanese text-center">聴牌形提案</h2>
+              <h2 className="text-3xl font-bold mb-6 text-white font-japanese text-center">🤖 AIアシスタント提案</h2>
               <div className="space-y-8">
-                {suggestions.map((pattern, patternIndex) => (
-                  <div key={patternIndex} className="bg-black/30 backdrop-blur-sm p-6 rounded-2xl shadow-mahjong-tile border-2 border-mahjong-gold-400/30">
-                    <h3 className="font-japanese font-bold mb-4 text-mahjong-gold-300 text-xl">提案 {patternIndex + 1}</h3>
-                    <div className="grid grid-cols-1 gap-6">
-                      <div>
-                        <p className="text-lg text-mahjong-gold-200 mb-3 font-japanese font-semibold">手牌</p>
-                        <div className="flex flex-wrap gap-2 bg-mahjong-ivory-500/20 p-4 rounded-xl border-2 border-mahjong-ivory-400/30">
-                          {pattern.tiles.map((tile, index) => (
-                            <div key={index} className="inline-flex w-10 h-14 sm:w-12 sm:h-16 md:w-14 md:h-20">
-                              <div className="relative w-full h-full flex items-center justify-center">
-                                <div className="relative w-[85%] h-[85%]">
-                                  <Image
-                                    src={getTileImagePath(tile)}
-                                    alt={tile}
-                                    fill
-                                    sizes="(max-width: 640px) 40px, (max-width: 768px) 48px, 56px"
-                                    className="object-contain"
-                                    priority={false}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-lg text-mahjong-gold-200 mb-3 font-japanese font-semibold">待ち牌と成立する役</p>
-                        <div className="space-y-4">
-                          {pattern.waitingTiles.map((wait, waitIndex) => (
-                            <div key={waitIndex} className="flex items-start gap-4 bg-mahjong-table-500/20 p-4 rounded-xl border-2 border-mahjong-table-400/30">
-                              <div className="inline-flex w-10 h-14 sm:w-12 sm:h-16 md:w-14 md:h-20">
-                                <div className="relative w-full h-full flex items-center justify-center">
-                                  <div className="relative w-[85%] h-[85%]">
-                                    <Image
-                                      src={getTileImagePath(wait.tile)}
-                                      alt={wait.tile}
-                                      fill
-                                      sizes="(max-width: 640px) 40px, (max-width: 768px) 48px, 56px"
-                                      className="object-contain"
-                                      priority={false}
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                {wait.yaku.map((yaku, yakuIndex) => (
-                                  <span key={yakuIndex} className="bg-mahjong-gold-500/90 text-white px-3 py-1 rounded-full text-sm font-japanese font-semibold border-2 border-mahjong-gold-400 shadow-mahjong-tile">
-                                    {yaku}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                {/* AI分析結果の表示 */}
+                {suggestions.length > 0 && suggestions[0].analysis && (
+                  <div className="bg-black/30 backdrop-blur-sm p-6 rounded-xl shadow-mahjong-tile border-2 border-mahjong-gold-400/30 mb-8">
+                    <h3 className="text-xl font-japanese font-bold mb-4 text-mahjong-gold-300 text-center">
+                      AI分析結果 {suggestions[0].source === 'gemini' && <span className="text-sm text-mahjong-gold-400">(Gemini AI)</span>}
+                    </h3>
+                    <div className="bg-mahjong-table-500/20 p-4 rounded-xl border-2 border-mahjong-table-400/30">
+                      <div className="whitespace-pre-wrap text-mahjong-ivory-200 leading-relaxed">
+                        {suggestions[0].analysis}
                       </div>
                     </div>
                   </div>
-                ))}
+                )}
+
+                {/* 役の分析結果の表示 */}
+                {suggestions.length > 0 && suggestions[0].yakuAnalysis && suggestions[0].yakuAnalysis.length > 0 && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {suggestions[0].yakuAnalysis.map((yaku: any, yakuIndex: number) => (
+                      <div key={yakuIndex} className="bg-black/30 backdrop-blur-sm p-4 rounded-xl shadow-mahjong-tile border-2 border-mahjong-gold-400/30">
+                        <div className="mb-3">
+                          <h3 className="text-lg font-japanese font-bold text-mahjong-gold-300">
+                            {yakuIndex === 0 ? '①' : yakuIndex === 1 ? '②' : yakuIndex === 2 ? '③' : yakuIndex === 3 ? '④' : yakuIndex === 4 ? '⑤' : `${yakuIndex + 1}.`}{yaku.yakuName}
+                          </h3>
+                          <div className="mb-3">
+                            <span className={`px-3 py-1 rounded-full text-xs font-japanese font-semibold ${yaku.possibility === '高い' ? 'bg-red-500/90 text-white' :
+                              yaku.possibility === '中程度' ? 'bg-yellow-500/90 text-white' :
+                                'bg-gray-500/90 text-white'
+                              }`}>
+                              {yaku.possibility}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-mahjong-ivory-200 leading-relaxed text-sm">
+                          {yaku.description}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* 事前計算された面子情報の表示（一か所だけ） */}
+                {suggestions.length > 0 && suggestions[0].melds && (
+                  <div className="mt-8">
+                    <h3 className="text-xl font-japanese font-bold mb-4 text-mahjong-gold-300 text-center">
+                      作れる面子
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {/* 順子 */}
+                      {suggestions[0].melds.sequences.length > 0 && (
+                        <div className="bg-mahjong-table-500/20 p-4 rounded-xl border-2 border-mahjong-table-400/30">
+                          <p className="text-sm text-mahjong-gold-300 font-semibold mb-3 text-center">順子 ({suggestions[0].melds.sequences.length}個)</p>
+                          <div className="flex flex-wrap gap-2 justify-center">
+                            {suggestions[0].melds.sequences.map((sequence: string[], idx: number) => (
+                              <div key={idx} className="flex gap-1">
+                                {sequence.map((tile: string, tileIdx: number) => (
+                                  <div key={tileIdx} className="inline-flex w-8 h-10">
+                                    <div className="relative w-full h-full">
+                                      <Image
+                                        src={getTileImagePath(tile)}
+                                        alt={tile}
+                                        fill
+                                        sizes="32px"
+                                        className="object-contain"
+                                        priority={false}
+                                      />
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 刻子 */}
+                      {suggestions[0].melds.triplets.length > 0 && (
+                        <div className="bg-mahjong-table-500/20 p-4 rounded-xl border-2 border-mahjong-table-400/30">
+                          <p className="text-sm text-mahjong-gold-300 font-semibold mb-3 text-center">刻子 ({suggestions[0].melds.triplets.length}個)</p>
+                          <div className="flex flex-wrap gap-2 justify-center">
+                            {suggestions[0].melds.triplets.map((triplet: string[], idx: number) => (
+                              <div key={idx} className="flex gap-1">
+                                {triplet.map((tile: string, tileIdx: number) => (
+                                  <div key={tileIdx} className="inline-flex w-8 h-10">
+                                    <div className="relative w-full h-full">
+                                      <Image
+                                        src={getTileImagePath(tile)}
+                                        alt={tile}
+                                        fill
+                                        sizes="32px"
+                                        className="object-contain"
+                                        priority={false}
+                                      />
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 対子 */}
+                      {suggestions[0].melds.pairs.length > 0 && (
+                        <div className="bg-mahjong-table-500/20 p-4 rounded-xl border-2 border-mahjong-table-400/30">
+                          <p className="text-sm text-mahjong-gold-300 font-semibold mb-3 text-center">対子 ({suggestions[0].melds.pairs.length}個)</p>
+                          <div className="flex flex-wrap gap-2 justify-center">
+                            {suggestions[0].melds.pairs.map((pair: string[], idx: number) => (
+                              <div key={idx} className="flex gap-1">
+                                {pair.map((tile: string, tileIdx: number) => (
+                                  <div key={tileIdx} className="inline-flex w-8 h-10">
+                                    <div className="relative w-full h-full">
+                                      <Image
+                                        src={getTileImagePath(tile)}
+                                        alt={tile}
+                                        fill
+                                        sizes="32px"
+                                        className="object-contain"
+                                        priority={false}
+                                      />
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 塔子（ターツ） */}
+                      {suggestions[0].melds.taatsu.length > 0 && (
+                        <div className="bg-mahjong-table-500/20 p-4 rounded-xl border-2 border-mahjong-table-400/30">
+                          <p className="text-sm text-mahjong-gold-300 font-semibold mb-3 text-center">塔子 ({suggestions[0].melds.taatsu.length}個)</p>
+                          <div className="flex flex-wrap gap-2 justify-center">
+                            {suggestions[0].melds.taatsu.map((taatsu: string[], idx: number) => (
+                              <div key={idx} className="flex gap-1">
+                                {taatsu.map((tile: string, tileIdx: number) => (
+                                  <div key={tileIdx} className="inline-flex w-8 h-10">
+                                    <div className="relative w-full h-full">
+                                      <Image
+                                        src={getTileImagePath(tile)}
+                                        alt={tile}
+                                        fill
+                                        sizes="32px"
+                                        className="object-contain border-2 border-blue-400 rounded"
+                                        priority={false}
+                                      />
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </section>
           )}

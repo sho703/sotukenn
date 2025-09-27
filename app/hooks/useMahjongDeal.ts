@@ -358,7 +358,7 @@ export function useMahjongDeal(): MahjongDealHook {
       const sortedHandTiles = sortTiles(newToArr);
       setHandTiles(sortedHandTiles);
     }
-    setSuggestions(null);
+    // setSuggestions(null); // 牌を移動しても提案を保持する
   };
 
   // ゾーン内並び替え
@@ -376,6 +376,7 @@ export function useMahjongDeal(): MahjongDealHook {
     } else {
       setPoolTiles(sortTiles(arr));
     }
+    // 並び替えでも提案を保持する（setSuggestions(null)を削除）
   };
 
   // プレイヤーの捨て牌を処理

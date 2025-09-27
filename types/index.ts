@@ -86,9 +86,26 @@ export interface WaitingTile {
   yaku: string[];
 }
 
+export interface YakuAnalysis {
+  yakuName: string;
+  possibility: '高い' | '中程度' | '低い';
+  description: string;
+}
+
+export interface Melds {
+  sequences: string[][];
+  triplets: string[][];
+  pairs: string[][];
+  taatsu: string[][];
+}
+
 export interface TenpaiPattern {
   tiles: TileType[];
   waitingTiles: WaitingTile[];
+  analysis?: string;
+  source?: string;
+  yakuAnalysis?: YakuAnalysis[];
+  melds?: Melds;
 }
 
 export interface TenpaiSuggestionResponse {
