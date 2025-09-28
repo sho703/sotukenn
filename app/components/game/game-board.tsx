@@ -592,7 +592,7 @@ export function GameBoard({
             </section>
           )}
 
-          {suggestions && suggestions.length > 0 && gamePhase !== 'playing' && (
+          {suggestions && suggestions.length > 0 && gamePhase === 'selecting' && (
             <section className="mt-8">
               <h2 className="text-3xl font-bold mb-6 text-white font-japanese text-center">AIアシスタント提案</h2>
               <div className="space-y-8">
