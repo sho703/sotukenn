@@ -594,21 +594,8 @@ export function GameBoard({
 
           {suggestions && suggestions.length > 0 && gamePhase !== 'playing' && (
             <section className="mt-8">
-              <h2 className="text-3xl font-bold mb-6 text-white font-japanese text-center">🤖 AIアシスタント提案</h2>
+              <h2 className="text-3xl font-bold mb-6 text-white font-japanese text-center">AIアシスタント提案</h2>
               <div className="space-y-8">
-                {/* AI分析結果の表示 */}
-                {suggestions.length > 0 && suggestions[0].analysis && (
-                  <div className="bg-black/30 backdrop-blur-sm p-6 rounded-xl shadow-mahjong-tile border-2 border-mahjong-gold-400/30 mb-8">
-                    <h3 className="text-xl font-japanese font-bold mb-4 text-mahjong-gold-300 text-center">
-                      AI分析結果 {suggestions[0].source === 'gemini' && <span className="text-sm text-mahjong-gold-400">(Gemini AI)</span>}
-                    </h3>
-                    <div className="bg-mahjong-table-500/20 p-4 rounded-xl border-2 border-mahjong-table-400/30">
-                      <div className="whitespace-pre-wrap text-mahjong-ivory-200 leading-relaxed">
-                        {suggestions[0].analysis}
-                      </div>
-                    </div>
-                  </div>
-                )}
 
                 {/* 役の分析結果の表示 */}
                 {suggestions.length > 0 && suggestions[0].yakuAnalysis && suggestions[0].yakuAnalysis.length > 0 && (

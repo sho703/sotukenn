@@ -63,13 +63,32 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     });
   }
 
-  // 国士無双: 19字牌で12種類以上
-  const honorTypes = Object.keys(tileCounts.honorDetails);
-  if (tileCounts.honor >= 12 && honorTypes.length >= 12) {
+  // 国士無双: 19字牌（1m,9m,1p,9p,1s,9s,東,南,西,北,白,發,中）のうち12種類以上
+  const kokushiTiles = ['1m', '9m', '1p', '9p', '1s', '9s', '東', '南', '西', '北', '白', '發', '中'];
+  const availableKokushiTiles = kokushiTiles.filter(tile => {
+    if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
+      // 数牌の場合
+      const suit = tile.endsWith('m') ? 'man' : tile.endsWith('p') ? 'pin' : 'sou';
+      const number = tile.charAt(0);
+      return tiles.includes(tile);
+    } else {
+      // 字牌の場合
+      return tiles.includes(tile);
+    }
+  });
+
+  // 19字牌の種類数と、2枚以上ある牌の種類数をチェック
+  const kokushiTypes = availableKokushiTiles.length;
+  const hasDuplicate = availableKokushiTiles.some(tile => {
+    const count = tiles.filter(t => t === tile).length;
+    return count >= 2;
+  });
+
+  if (kokushiTypes >= 12 && hasDuplicate) {
     yakuList.push({
       yakuName: "国士無双",
       possibility: "高い",
-      description: `字牌が${tileCounts.honor}枚で${honorTypes.length}種類あるため、国士無双を狙えます。国士無双は13翻の役満で、19字牌を1つずつ揃える特殊な形です。`
+      description: `19字牌のうち${kokushiTypes}種類が利用可能で、2枚以上ある牌もあるため、国士無双を狙えます。国士無双は13翻の役満で、19字牌を1つずつ揃える特殊な形です。`
     });
   }
 
@@ -114,31 +133,53 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     });
   }
 
-  // 混一色: 萬子+字牌、筒子+字牌、索子+字牌で13枚以上
-  if (tileCounts.man + tileCounts.honor >= 13) {
-    yakuList.push({
-      yakuName: "混一色（萬子+字牌）",
-      possibility: "中程度",
-      description: `萬子${tileCounts.man}枚と字牌${tileCounts.honor}枚で合計${tileCounts.man + tileCounts.honor}枚あるため、混一色を狙えます。混一色は3翻の役で、一種類の数牌と字牌で手牌を作る役です。`
+  // 順子・刻子・対子・塔子を事前に取得
+  const sequences = possibleMelds.sequences;
+  const pairs = possibleMelds.pairs;
+  const triplets = possibleMelds.triplets;
+  const taatsu = possibleMelds.taatsu;
+
+  // 混一色: 萬子+字牌、筒子+字牌、索子+字牌で4面子1雀頭を作る
+  // 混一色の条件チェック：4面子1雀頭を作るために必要な組み合わせを厳密にチェック
+  const honitsuSuits = ['m', 'p', 's'];
+  const honitsuSuitNames: { [key: string]: string } = { 'm': '萬子', 'p': '筒子', 's': '索子' };
+
+  honitsuSuits.forEach(suit => {
+    // その色の数牌と字牌で構成される順子・刻子・対子を厳密にチェック
+    const suitSequences = sequences.filter((seq: string[]) => {
+      return seq.every(tile => tile.endsWith(suit) || !tile.match(/[0-9]/));
     });
-  }
-  if (tileCounts.pin + tileCounts.honor >= 13) {
-    yakuList.push({
-      yakuName: "混一色（筒子+字牌）",
-      possibility: "中程度",
-      description: `筒子${tileCounts.pin}枚と字牌${tileCounts.honor}枚で合計${tileCounts.pin + tileCounts.honor}枚あるため、混一色を狙えます。混一色は3翻の役で、一種類の数牌と字牌で手牌を作る役です。`
+
+    const suitPairs = pairs.filter((pair: string[]) => {
+      return pair.every(tile => tile.endsWith(suit) || !tile.match(/[0-9]/));
     });
-  }
-  if (tileCounts.sou + tileCounts.honor >= 13) {
-    yakuList.push({
-      yakuName: "混一色（索子+字牌）",
-      possibility: "中程度",
-      description: `索子${tileCounts.sou}枚と字牌${tileCounts.honor}枚で合計${tileCounts.sou + tileCounts.honor}枚あるため、混一色を狙えます。混一色は3翻の役で、一種類の数牌と字牌で手牌を作る役です。`
+
+    const suitTriplets = triplets.filter((triplet: string[]) => {
+      return triplet.every(tile => tile.endsWith(suit) || !tile.match(/[0-9]/));
     });
-  }
+
+    // 厳密な4面子1雀頭の組み合わせチェック
+    const totalMelds = suitSequences.length + suitTriplets.length;
+    const totalPairs = suitPairs.length;
+
+    // 4面子1雀頭を作るには、面子が4個以上、対子が1個以上必要
+    if (totalMelds >= 4 && totalPairs >= 1) {
+      yakuList.push({
+        yakuName: `混一色（${honitsuSuitNames[suit]}）`,
+        possibility: "高い",
+        description: `${honitsuSuitNames[suit]}と字牌で面子${totalMelds}個（順子${suitSequences.length}個、刻子${suitTriplets.length}個）と対子${totalPairs}個があるため、混一色を狙えます。混一色は3翻の役です。`
+      });
+    } else if (totalMelds >= 3 && totalPairs >= 1) {
+      yakuList.push({
+        yakuName: `混一色（${honitsuSuitNames[suit]}）`,
+        possibility: "中程度",
+        description: `${honitsuSuitNames[suit]}と字牌で面子${totalMelds}個（順子${suitSequences.length}個、刻子${suitTriplets.length}個）と対子${totalPairs}個があるため、混一色の可能性があります。混一色は3翻の役です。`
+      });
+    }
+  });
 
   // 字一色: 字牌のみ
-  if (tileCounts.man === 0 && tileCounts.pin === 0 && tileCounts.sou === 0 && tileCounts.honor >= 13) {
+  if (tileCounts.honor >= 13) {
     yakuList.push({
       yakuName: "字一色",
       possibility: "高い",
@@ -184,15 +225,6 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     });
   }
 
-  // 三槓子: 槓子3つ（今回は刻子で代替）
-  if (possibleMelds.triplets.length >= 3) {
-    yakuList.push({
-      yakuName: "三槓子",
-      possibility: "低い",
-      description: `刻子が${possibleMelds.triplets.length}個あるため、三槓子の可能性があります。三槓子は2翻の役で、槓子を3つ作る役です。`
-    });
-  }
-
   // 対々和: 刻子3つ+対子1つ
   if (possibleMelds.triplets.length >= 3 && possibleMelds.pairs.length >= 1) {
     yakuList.push({
@@ -202,80 +234,589 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     });
   }
 
-  // 一気通貫: 順子で1-9の連続（萬子）
-  const manSequences = possibleMelds.sequences.filter((seq: string[]) => seq[0].endsWith('m'));
-  if (manSequences.length >= 3) {
-    yakuList.push({
-      yakuName: "一気通貫（萬子）",
-      possibility: "低い",
-      description: `萬子の順子が${manSequences.length}個あるため、一気通貫の可能性があります。一気通貫は2翻の役で、同色で1-9の連続する順子を作る役です。`
-    });
-  }
+  // 一気通貫: 同色で1-9の連続する順子（123, 456, 789）
+  // 一気通貫の条件チェック：4面子1雀頭を作るために必要な組み合わせを探す
+  const ittsuSuits = ['m', 'p', 's'];
+  const suitNames: { [key: string]: string } = { 'm': '萬子', 'p': '筒子', 's': '索子' };
 
-  // 一気通貫: 順子で1-9の連続（筒子）
-  const pinSequences = possibleMelds.sequences.filter((seq: string[]) => seq[0].endsWith('p'));
-  if (pinSequences.length >= 3) {
-    yakuList.push({
-      yakuName: "一気通貫（筒子）",
-      possibility: "低い",
-      description: `筒子の順子が${pinSequences.length}個あるため、一気通貫の可能性があります。一気通貫は2翻の役で、同色で1-9の連続する順子を作る役です。`
-    });
-  }
+  ittsuSuits.forEach(suit => {
+    const suitSequences = possibleMelds.sequences.filter((seq: string[]) => seq[0].endsWith(suit));
+    const sequenceNumbers = suitSequences.map((seq: string[]) => parseInt(seq[0][0])).sort();
 
-  // 一気通貫: 順子で1-9の連続（索子）
-  const souSequences = possibleMelds.sequences.filter((seq: string[]) => seq[0].endsWith('s'));
-  if (souSequences.length >= 3) {
-    yakuList.push({
-      yakuName: "一気通貫（索子）",
-      possibility: "低い",
-      description: `索子の順子が${souSequences.length}個あるため、一気通貫の可能性があります。一気通貫は2翻の役で、同色で1-9の連続する順子を作る役です。`
-    });
-  }
+    // 一気通貫の条件をチェック：123, 456, 789の順子があるか
+    const has123 = sequenceNumbers.includes(1);
+    const has456 = sequenceNumbers.includes(4);
+    const has789 = sequenceNumbers.includes(7);
+
+    if (has123 && has456 && has789) {
+      yakuList.push({
+        yakuName: `一気通貫（${suitNames[suit]}）`,
+        possibility: "高い",
+        description: `${suitNames[suit]}で123, 456, 789の順子が揃っているため、一気通貫を狙えます。一気通貫は2翻の役で、同色で1-9の連続する順子を作る役です。`
+      });
+    } else {
+      const missingSequences = [];
+      if (!has123) missingSequences.push('123');
+      if (!has456) missingSequences.push('456');
+      if (!has789) missingSequences.push('789');
+
+      const completedCount = 3 - missingSequences.length;
+      if (completedCount >= 2) {
+        yakuList.push({
+          yakuName: `一気通貫（${suitNames[suit]}）`,
+          possibility: "中程度",
+          description: `${suitNames[suit]}で${completedCount}組の順子が揃っており、残り${missingSequences.join('、')}の順子で一気通貫を狙えます。一気通貫は2翻の役です。`
+        });
+      } else if (completedCount >= 1) {
+        yakuList.push({
+          yakuName: `一気通貫（${suitNames[suit]}）`,
+          possibility: "低い",
+          description: `${suitNames[suit]}で${completedCount}組の順子が揃っており、残り${missingSequences.join('、')}の順子で一気通貫を狙えます。一気通貫は2翻の役です。`
+        });
+      }
+    }
+  });
 
   // 三色同順: 萬子・筒子・索子で同じ数字の順子
-  const allSequences = possibleMelds.sequences;
-  if (allSequences.length >= 3) {
-    yakuList.push({
-      yakuName: "三色同順",
-      possibility: "低い",
-      description: `順子が${allSequences.length}個あるため、三色同順の可能性があります。三色同順は2翻の役で、萬子・筒子・索子で同じ数字の順子を作る役です。`
-    });
-  }
+  // 三色同順の条件チェック：4面子1雀頭を作るために必要な組み合わせを厳密にチェック
+  const sequenceNumbers: { [key: number]: string[] } = {};
+
+  // 各順子の開始数字を色別に記録
+  possibleMelds.sequences.forEach((seq: string[]) => {
+    if (seq.length === 3) {
+      const number = parseInt(seq[0][0]);
+      const suit = seq[0].slice(-1);
+      if (!sequenceNumbers[number]) {
+        sequenceNumbers[number] = [];
+      }
+      sequenceNumbers[number].push(suit);
+    }
+  });
+
+  // 同じ数字で3色揃っているか厳密にチェック
+  Object.entries(sequenceNumbers).forEach(([number, suits]) => {
+    const uniqueSuits = [...new Set(suits)];
+    if (uniqueSuits.length >= 3) {
+      // 3色揃っている場合のみ「高い」可能性
+      yakuList.push({
+        yakuName: "三色同順",
+        possibility: "高い",
+        description: `${number}の順子が萬子・筒子・索子の${uniqueSuits.length}色で揃っているため、三色同順を狙えます。三色同順は2翻の役で、萬子・筒子・索子で同じ数字の順子を作る役です。`
+      });
+    }
+    // 2色以下は検出しない（厳密化）
+  });
 
   // 三色同刻: 萬子・筒子・索子で同じ数字の刻子
-  if (possibleMelds.triplets.length >= 3) {
-    yakuList.push({
-      yakuName: "三色同刻",
-      possibility: "低い",
-      description: `刻子が${possibleMelds.triplets.length}個あるため、三色同刻の可能性があります。三色同刻は2翻の役で、萬子・筒子・索子で同じ数字の刻子を作る役です。`
-    });
-  }
+  // 三色同刻の条件チェック：4面子1雀頭を作るために必要な組み合わせを厳密にチェック
+  const tripletNumbers: { [key: number]: string[] } = {};
 
-  // 一盃口: 同じ順子が2つ
-  const sequenceCounts: { [key: string]: number } = {};
-  allSequences.forEach((seq: string[]) => {
-    const key = seq.join(',');
-    sequenceCounts[key] = (sequenceCounts[key] || 0) + 1;
+  // 各刻子の数字を色別に記録
+  possibleMelds.triplets.forEach((triplet: string[]) => {
+    if (triplet.length === 3) {
+      const number = parseInt(triplet[0][0]);
+      const suit = triplet[0].slice(-1);
+      if (!tripletNumbers[number]) {
+        tripletNumbers[number] = [];
+      }
+      tripletNumbers[number].push(suit);
+    }
   });
-  const duplicateSequences = Object.values(sequenceCounts).filter(count => count >= 2).length;
-  if (duplicateSequences >= 1) {
+
+  // 同じ数字で3色揃っているか厳密にチェック
+  Object.entries(tripletNumbers).forEach(([number, suits]) => {
+    const uniqueSuits = [...new Set(suits)];
+    if (uniqueSuits.length >= 3) {
+      // 3色揃っている場合のみ「高い」可能性
+      yakuList.push({
+        yakuName: "三色同刻",
+        possibility: "高い",
+        description: `${number}の刻子が萬子・筒子・索子の${uniqueSuits.length}色で揃っているため、三色同刻を狙えます。三色同刻は2翻の役で、萬子・筒子・索子で同じ数字の刻子を作る役です。`
+      });
+    }
+    // 2色以下は検出しない（厳密化）
+  });
+
+  // 一盃口: 同じ順子が2つ（より詳細な検出）
+  const sequenceCounts: { [key: string]: number } = {};
+
+  // 利用可能な牌から順子の組み合わせを詳細にチェック
+  const suits = ['m', 'p', 's'];
+  suits.forEach(suit => {
+    const suitTiles = tiles.filter(tile => tile.endsWith(suit)).sort();
+    const numbers = suitTiles.map(tile => parseInt(tile[0]));
+
+    // 連続する3枚の順子を探す
+    for (let i = 1; i <= 7; i++) {
+      if (numbers.includes(i) && numbers.includes(i + 1) && numbers.includes(i + 2)) {
+        const sequenceKey = `${i}${suit},${i + 1}${suit},${i + 2}${suit}`;
+        sequenceCounts[sequenceKey] = (sequenceCounts[sequenceKey] || 0) + 1;
+      }
+    }
+  });
+
+  // 同じ順子が2つ以上あるかチェック
+  const duplicateSequences = Object.entries(sequenceCounts).filter(([key, count]) => count >= 2);
+
+  if (duplicateSequences.length >= 1) {
     yakuList.push({
       yakuName: "一盃口",
       possibility: "中程度",
-      description: `同じ順子が${duplicateSequences}組あるため、一盃口を狙えます。一盃口は1翻の役で、同じ順子を2つ作る役です。`
+      description: `同じ順子が${duplicateSequences.length}組（${duplicateSequences[0][0]}など）あるため、一盃口を狙えます。一盃口は1翻の役で、同じ順子を2つ作る役です。`
     });
   }
 
   // 二盃口: 同じ順子の組み合わせが2つ
-  if (duplicateSequences >= 2) {
+  if (duplicateSequences.length >= 2) {
     yakuList.push({
       yakuName: "二盃口",
       possibility: "中程度",
-      description: `同じ順子が${duplicateSequences}組あるため、二盃口を狙えます。二盃口は3翻の役で、同じ順子の組み合わせを2つ作る役です。`
+      description: `同じ順子が${duplicateSequences.length}組あるため、二盃口を狙えます。二盃口は3翻の役で、同じ順子の組み合わせを2つ作る役です。`
     });
   }
 
-  return yakuList;
+  // タンヤオ: 2-8の数牌のみで構成（1と9、字牌を含まない）
+  // タンヤオの条件チェック：4面子1雀頭を作るために必要な組み合わせを探す
+
+  if (sequences.length >= 3 && pairs.length >= 1) {
+    // 2-8の数牌で構成される順子の数
+    const tanyaoSequences = sequences.filter((seq: string[]) => {
+      return seq.every(tile => {
+        if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
+          const number = parseInt(tile[0]);
+          return number >= 2 && number <= 8;
+        }
+        return false;
+      });
+    });
+
+    // 2-8の数牌で構成される対子の数
+    const tanyaoPairs = pairs.filter((pair: string[]) => {
+      return pair.every(tile => {
+        if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
+          const number = parseInt(tile[0]);
+          return number >= 2 && number <= 8;
+        }
+        return false;
+      });
+    });
+
+    // 2-8の数牌で構成される刻子の数
+    const tanyaoTriplets = triplets.filter((triplet: string[]) => {
+      return triplet.every(tile => {
+        if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
+          const number = parseInt(tile[0]);
+          return number >= 2 && number <= 8;
+        }
+        return false;
+      });
+    });
+
+    // 4面子1雀頭を作るために必要な組み合わせをチェック
+    if (tanyaoSequences.length >= 3 && tanyaoPairs.length >= 1) {
+      yakuList.push({
+        yakuName: "タンヤオ",
+        possibility: "高い",
+        description: `2-8の数牌の順子${tanyaoSequences.length}個と対子${tanyaoPairs.length}個があるため、タンヤオを狙えます。タンヤオは1翻の役で、2-8の数牌のみで手牌を作る役です。`
+      });
+    } else if (tanyaoSequences.length >= 2 && tanyaoPairs.length >= 1 && tanyaoTriplets.length >= 1) {
+      yakuList.push({
+        yakuName: "タンヤオ",
+        possibility: "中程度",
+        description: `2-8の数牌の順子${tanyaoSequences.length}個、刻子${tanyaoTriplets.length}個、対子${tanyaoPairs.length}個があるため、タンヤオの可能性があります。タンヤオは1翻の役です。`
+      });
+    } else if (tanyaoSequences.length >= 1 && tanyaoPairs.length >= 1 && tanyaoTriplets.length >= 2) {
+      yakuList.push({
+        yakuName: "タンヤオ",
+        possibility: "中程度",
+        description: `2-8の数牌の順子${tanyaoSequences.length}個、刻子${tanyaoTriplets.length}個、対子${tanyaoPairs.length}個があるため、タンヤオの可能性があります。タンヤオは1翻の役です。`
+      });
+    }
+  }
+
+  // 平和: 3面子 + 雀頭 + 両面待ち（刻子なし、雀頭は役牌以外）
+  // 平和の条件チェック：4面子1雀頭を作るために必要な組み合わせを探す
+  if (sequences.length >= 3 && pairs.length >= 1) {
+    // 雀頭が役牌でないかチェック
+    const honorTiles = ['東', '南', '西', '北', '白', '發', '中'];
+    const nonHonorPairs = pairs.filter((pair: string[]) => {
+      const tile = pair[0];
+      return !honorTiles.includes(tile);
+    });
+
+    if (nonHonorPairs.length >= 1) {
+      // 両面待ち（ターツ）があるかチェック
+      const hasValidTaatsu = taatsu.some((taatsu: string[]) => {
+        if (taatsu.length === 2) {
+          const [tile1, tile2] = taatsu;
+          // 同じ色で連続する数字（両面待ち）かチェック
+          if (tile1.endsWith('m') && tile2.endsWith('m')) {
+            const num1 = parseInt(tile1[0]);
+            const num2 = parseInt(tile2[0]);
+            return Math.abs(num1 - num2) === 1;
+          } else if (tile1.endsWith('p') && tile2.endsWith('p')) {
+            const num1 = parseInt(tile1[0]);
+            const num2 = parseInt(tile2[0]);
+            return Math.abs(num1 - num2) === 1;
+          } else if (tile1.endsWith('s') && tile2.endsWith('s')) {
+            const num1 = parseInt(tile1[0]);
+            const num2 = parseInt(tile2[0]);
+            return Math.abs(num1 - num2) === 1;
+          }
+        }
+        return false;
+      });
+
+      if (hasValidTaatsu) {
+        yakuList.push({
+          yakuName: "平和",
+          possibility: "中程度",
+          description: `順子${sequences.length}個、対子${pairs.length}個があり、両面待ちの塔子もあるため、平和を狙えます。平和は1翻の役で、3つの順子+1つの対子で構成し、両面待ちで上がる役です。`
+        });
+      }
+    }
+  }
+
+  // 純全帯么九: すべての面子と雀頭に1・9の牌が含まれる
+  // 純全帯么九の条件チェック：4面子1雀頭を作るために必要な組み合わせを厳密にチェック
+  if (sequences.length >= 3 && pairs.length >= 1) {
+    // 1・9を含む順子の数
+    const junchanSequences = sequences.filter((seq: string[]) => {
+      return seq.some(tile => {
+        if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
+          const number = parseInt(tile[0]);
+          return number === 1 || number === 9;
+        }
+        return false;
+      });
+    });
+
+    // 1・9の数牌で構成される対子の数
+    const junchanPairs = pairs.filter((pair: string[]) => {
+      return pair.every(tile => {
+        if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
+          const number = parseInt(tile[0]);
+          return number === 1 || number === 9;
+        }
+        return false;
+      });
+    });
+
+    // 1・9の数牌で構成される刻子の数
+    const junchanTriplets = triplets.filter((triplet: string[]) => {
+      return triplet.every(tile => {
+        if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
+          const number = parseInt(tile[0]);
+          return number === 1 || number === 9;
+        }
+        return false;
+      });
+    });
+
+    // 厳密な4面子1雀頭の組み合わせチェック
+    const totalMelds = junchanSequences.length + junchanTriplets.length;
+    const totalPairs = junchanPairs.length;
+
+    // 4面子1雀頭を作るには、面子が4個以上、対子が1個以上必要
+    if (totalMelds >= 4 && totalPairs >= 1) {
+      yakuList.push({
+        yakuName: "純全帯么九",
+        possibility: "高い",
+        description: `1・9を含む面子${totalMelds}個（順子${junchanSequences.length}個、刻子${junchanTriplets.length}個）と1・9の対子${totalPairs}個があるため、純全帯么九を狙えます。純全帯么九は2翻の役です。`
+      });
+    } else if (totalMelds >= 3 && totalPairs >= 1) {
+      yakuList.push({
+        yakuName: "純全帯么九",
+        possibility: "中程度",
+        description: `1・9を含む面子${totalMelds}個（順子${junchanSequences.length}個、刻子${junchanTriplets.length}個）と1・9の対子${totalPairs}個があるため、純全帯么九の可能性があります。純全帯么九は2翻の役です。`
+      });
+    }
+  }
+
+  // 混全帯么九: すべての面子と雀頭に1・9の牌が含まれる（字牌も可）
+  // 混全帯么九の条件チェック：4面子1雀頭を作るために必要な組み合わせを厳密にチェック
+  if (sequences.length >= 3 && pairs.length >= 1) {
+    // 1・9を含む順子の数
+    const honchanSequences = sequences.filter((seq: string[]) => {
+      return seq.some(tile => {
+        if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
+          const number = parseInt(tile[0]);
+          return number === 1 || number === 9;
+        }
+        return false;
+      });
+    });
+
+    // 1・9の数牌か字牌で構成される対子の数
+    const honchanPairs = pairs.filter((pair: string[]) => {
+      return pair.every(tile => {
+        if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
+          const number = parseInt(tile[0]);
+          return number === 1 || number === 9;
+        } else {
+          // 字牌はOK
+          return true;
+        }
+      });
+    });
+
+    // 1・9の数牌か字牌で構成される刻子の数
+    const honchanTriplets = triplets.filter((triplet: string[]) => {
+      return triplet.every(tile => {
+        if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
+          const number = parseInt(tile[0]);
+          return number === 1 || number === 9;
+        } else {
+          // 字牌はOK
+          return true;
+        }
+      });
+    });
+
+    // 厳密な4面子1雀頭の組み合わせチェック
+    const totalMelds = honchanSequences.length + honchanTriplets.length;
+    const totalPairs = honchanPairs.length;
+
+    // 4面子1雀頭を作るには、面子が4個以上、対子が1個以上必要
+    if (totalMelds >= 4 && totalPairs >= 1) {
+      yakuList.push({
+        yakuName: "混全帯么九",
+        possibility: "高い",
+        description: `1・9を含む面子${totalMelds}個（順子${honchanSequences.length}個、刻子${honchanTriplets.length}個）と1・9の数牌か字牌の対子${totalPairs}個があるため、混全帯么九を狙えます。混全帯么九は2翻の役です。`
+      });
+    } else if (totalMelds >= 3 && totalPairs >= 1) {
+      yakuList.push({
+        yakuName: "混全帯么九",
+        possibility: "中程度",
+        description: `1・9を含む面子${totalMelds}個（順子${honchanSequences.length}個、刻子${honchanTriplets.length}個）と1・9の数牌か字牌の対子${totalPairs}個があるため、混全帯么九の可能性があります。混全帯么九は2翻の役です。`
+      });
+    }
+  }
+
+  // 混老頭: すべての面子と雀頭に1・9の牌か字牌が含まれる
+  // 混老頭の条件チェック：刻子ベースで厳密にチェック
+  if (triplets.length >= 3) {
+    // 1・9・字牌の刻子をチェック
+    const honroutouTriplets = triplets.filter((triplet: string[]) => {
+      return triplet.every(tile => {
+        if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
+          const number = parseInt(tile[0]);
+          return number === 1 || number === 9;
+        } else {
+          // 字牌はOK
+          return true;
+        }
+      });
+    });
+
+    if (honroutouTriplets.length >= 3) {
+      // 1・9・字牌の刻子が3個以上ある
+      if (honroutouTriplets.length >= 4) {
+        // 刻子が4個以上なら高確率
+        yakuList.push({
+          yakuName: "混老頭",
+          possibility: "高い",
+          description: `1・9・字牌の刻子が${honroutouTriplets.length}個あるため、混老頭を狙えます。混老頭は2翻の役で、すべての面子と雀頭に1・9の牌か字牌が含まれる役です。`
+        });
+      } else {
+        // 刻子が3個の場合、刻子で使ったもの以外で1・9・字牌の対子を探す
+        const usedTiles = new Set<string>();
+        honroutouTriplets.forEach((triplet: string[]) => {
+          triplet.forEach((tile: string) => usedTiles.add(tile));
+        });
+
+        // 刻子で使っていない1・9・字牌の対子をチェック
+        const availablePairs = pairs.filter((pair: string[]) => {
+          const isHonroutou = pair.every(tile => {
+            if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
+              const number = parseInt(tile[0]);
+              return number === 1 || number === 9;
+            } else {
+              return true; // 字牌はOK
+            }
+          });
+
+          // 刻子で使っていない牌の対子かチェック
+          const notUsed = pair.every(tile => !usedTiles.has(tile));
+          return isHonroutou && notUsed;
+        });
+
+        if (availablePairs.length >= 2) {
+          yakuList.push({
+            yakuName: "混老頭",
+            possibility: "高い",
+            description: `1・9・字牌の刻子${honroutouTriplets.length}個と、刻子で使っていない1・9・字牌の対子${availablePairs.length}個があるため、混老頭を狙えます。混老頭は2翻の役です。`
+          });
+        }
+        // 対子が2個未満の場合は検出しない（可能性なし）
+      }
+    }
+    // 1・9・字牌の刻子が3個未満の場合は検出しない（可能性なし）
+  }
+  // 刻子が3個未満の場合は検出しない（可能性なし）
+
+  // 清老頭: すべての面子と雀頭に1・9の牌が含まれ、字牌を含まない（役満）
+  // 清老頭の条件チェック：刻子ベースで厳密にチェック
+  if (triplets.length >= 3) {
+    // 1・9の数牌の刻子をチェック（字牌は不可）
+    const chinroutouTriplets = triplets.filter((triplet: string[]) => {
+      return triplet.every(tile => {
+        if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
+          const number = parseInt(tile[0]);
+          return number === 1 || number === 9;
+        } else {
+          // 字牌は不可
+          return false;
+        }
+      });
+    });
+
+    if (chinroutouTriplets.length >= 3) {
+      // 1・9の刻子が3個以上ある
+      if (chinroutouTriplets.length >= 4) {
+        // 刻子が4個以上なら高確率
+        yakuList.push({
+          yakuName: "清老頭",
+          possibility: "高い",
+          description: `1・9の刻子が${chinroutouTriplets.length}個あるため、清老頭を狙えます。清老頭は役満で、すべての面子と雀頭に1・9の牌が含まれ、字牌を含まない役です。`
+        });
+      } else {
+        // 刻子が3個の場合、刻子で使ったもの以外で1・9の対子を探す
+        const usedTiles = new Set<string>();
+        chinroutouTriplets.forEach((triplet: string[]) => {
+          triplet.forEach((tile: string) => usedTiles.add(tile));
+        });
+
+        // 刻子で使っていない1・9の対子をチェック
+        const availablePairs = pairs.filter((pair: string[]) => {
+          const isChinroutou = pair.every(tile => {
+            if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
+              const number = parseInt(tile[0]);
+              return number === 1 || number === 9;
+            } else {
+              return false; // 字牌は不可
+            }
+          });
+
+          // 刻子で使っていない牌の対子かチェック
+          const notUsed = pair.every(tile => !usedTiles.has(tile));
+          return isChinroutou && notUsed;
+        });
+
+        if (availablePairs.length >= 2) {
+          yakuList.push({
+            yakuName: "清老頭",
+            possibility: "高い",
+            description: `1・9の刻子${chinroutouTriplets.length}個と、刻子で使っていない1・9の対子${availablePairs.length}個があるため、清老頭を狙えます。清老頭は役満です。`
+          });
+        }
+        // 対子が2個未満の場合は検出しない（可能性なし）
+      }
+    }
+    // 1・9の刻子が3個未満の場合は検出しない（可能性なし）
+  }
+  // 刻子が3個未満の場合は検出しない（可能性なし）
+
+  // 緑一色: 2索、3索、4索、6索、8索、發のみで構成（役満）
+  // 緑一色の条件チェック：34枚から直接検出
+  const greenTiles = ['2s', '3s', '4s', '6s', '8s', '發'];
+  const greenTileCount = tiles.filter(tile => greenTiles.includes(tile)).length;
+  const nonGreenTiles = tiles.filter(tile => !greenTiles.includes(tile));
+
+  if (nonGreenTiles.length === 0 && greenTileCount >= 13) {
+    yakuList.push({
+      yakuName: "緑一色",
+      possibility: "高い",
+      description: `緑一色の牌のみで構成されているため、緑一色を狙えます。緑一色は役満で、2索、3索、4索、6索、8索、發のみで手牌を作る役です。`
+    });
+  } else if (nonGreenTiles.length <= 2 && greenTileCount >= 11) {
+    yakuList.push({
+      yakuName: "緑一色",
+      possibility: "中程度",
+      description: `緑一色の牌が${greenTileCount}枚あり、非緑色の牌が${nonGreenTiles.length}枚のみのため、緑一色の可能性があります。緑一色は役満です。`
+    });
+  } else if (nonGreenTiles.length <= 4 && greenTileCount >= 9) {
+    yakuList.push({
+      yakuName: "緑一色",
+      possibility: "低い",
+      description: `緑一色の牌が${greenTileCount}枚あり、非緑色の牌が${nonGreenTiles.length}枚のため、緑一色の可能性があります。緑一色は役満です。`
+    });
+  }
+
+  // 九蓮宝燈: 同色で1112345678999の形（役満）
+  // 九蓮宝燈の条件チェック：34枚から直接検出
+  const chuurenSuits = ['m', 'p', 's'];
+  const chuurenSuitNames: { [key: string]: string } = { 'm': '萬子', 'p': '筒子', 's': '索子' };
+
+  chuurenSuits.forEach(suit => {
+    const suitTiles = tiles.filter(tile => tile.endsWith(suit));
+    const numbers = suitTiles.map(tile => parseInt(tile[0])).sort();
+
+    // 九蓮宝燈の形をチェック：1112345678999
+    const has111 = numbers.filter(n => n === 1).length >= 3;
+    const has23456789 = [2, 3, 4, 5, 6, 7, 8, 9].every(n => numbers.includes(n));
+    const has999 = numbers.filter(n => n === 9).length >= 3;
+
+    if (has111 && has23456789 && has999) {
+      yakuList.push({
+        yakuName: `九蓮宝燈（${chuurenSuitNames[suit]}）`,
+        possibility: "高い",
+        description: `${chuurenSuitNames[suit]}で1112345678999の形が揃っているため、九蓮宝燈を狙えます。九蓮宝燈は役満で、同色で1112345678999の形で手牌を作る役です。`
+      });
+    } else {
+      const missingTiles = [];
+      if (!has111) missingTiles.push('1が3枚以上');
+      if (!has23456789) {
+        const missingNumbers = [2, 3, 4, 5, 6, 7, 8, 9].filter(n => !numbers.includes(n));
+        if (missingNumbers.length > 0) missingTiles.push(`${missingNumbers.join(',')}が不足`);
+      }
+      if (!has999) missingTiles.push('9が3枚以上');
+
+      const completedCount = 3 - missingTiles.length;
+      if (completedCount >= 2) {
+        yakuList.push({
+          yakuName: `九蓮宝燈（${chuurenSuitNames[suit]}）`,
+          possibility: "中程度",
+          description: `${chuurenSuitNames[suit]}で九蓮宝燈の形が${completedCount}部分揃っており、残り${missingTiles.join('、')}で九蓮宝燈を狙えます。九蓮宝燈は役満です。`
+        });
+      } else if (completedCount >= 1) {
+        yakuList.push({
+          yakuName: `九蓮宝燈（${chuurenSuitNames[suit]}）`,
+          possibility: "低い",
+          description: `${chuurenSuitNames[suit]}で九蓮宝燈の形が${completedCount}部分揃っており、残り${missingTiles.join('、')}で九蓮宝燈を狙えます。九蓮宝燈は役満です。`
+        });
+      }
+    }
+  });
+
+  // 純正九蓮宝燈: 同色で1112345678999の形で、1か9のどちらかが4枚（役満）
+  // 純正九蓮宝燈の条件チェック：34枚から直接検出
+  chuurenSuits.forEach(suit => {
+    const suitTiles = tiles.filter(tile => tile.endsWith(suit));
+    const numbers = suitTiles.map(tile => parseInt(tile[0])).sort();
+
+    // 九蓮宝燈の基本形をチェック
+    const has111 = numbers.filter(n => n === 1).length >= 3;
+    const has23456789 = [2, 3, 4, 5, 6, 7, 8, 9].every(n => numbers.includes(n));
+    const has999 = numbers.filter(n => n === 9).length >= 3;
+
+    if (has111 && has23456789 && has999) {
+      // 1か9のどちらかが4枚以上あるかチェック
+      const onesCount = numbers.filter(n => n === 1).length;
+      const ninesCount = numbers.filter(n => n === 9).length;
+
+      if (onesCount >= 4 || ninesCount >= 4) {
+        yakuList.push({
+          yakuName: `純正九蓮宝燈（${chuurenSuitNames[suit]}）`,
+          possibility: "高い",
+          description: `${chuurenSuitNames[suit]}で1112345678999の形が揃い、${onesCount >= 4 ? '1が4枚以上' : '9が4枚以上'}あるため、純正九蓮宝燈を狙えます。純正九蓮宝燈は役満で、九蓮宝燈の形で1か9が4枚以上ある役です。`
+        });
+      }
+    }
+  });
+
+  // 「低い」可能性の役は除外
+  return yakuList.filter(yaku => yaku.possibility !== "低い");
 }
 
 // 順子・刻子・塔子を事前計算する関数
@@ -314,19 +855,17 @@ function findPossibleMelds(tiles: string[]): { sequences: string[][], triplets: 
       }
     }
 
-    // 塔子（ターツ）を探す（順子で使用されていない牌のみ）
-    // 連続する2枚（例：3s4s）
+    // 塔子（ターツ）を探す
+    // 連続する2枚（例：3s4s）- 両面待ち
     for (let i = 1; i <= 8; i++) {
-      if (numbers.includes(i) && numbers.includes(i + 1) &&
-        !usedInSequences.has(i) && !usedInSequences.has(i + 1)) {
+      if (numbers.includes(i) && numbers.includes(i + 1)) {
         taatsu.push([`${i}${suit}`, `${i + 1}${suit}`]);
       }
     }
 
-    // 1枚抜けの2枚（例：3s5s）
+    // 1枚抜けの2枚（例：3s5s）- カンチャン待ち
     for (let i = 1; i <= 7; i++) {
-      if (numbers.includes(i) && numbers.includes(i + 2) &&
-        !usedInSequences.has(i) && !usedInSequences.has(i + 2)) {
+      if (numbers.includes(i) && numbers.includes(i + 2)) {
         taatsu.push([`${i}${suit}`, `${i + 2}${suit}`]);
       }
     }
@@ -353,7 +892,7 @@ function findPossibleMelds(tiles: string[]): { sequences: string[][], triplets: 
 }
 
 // Gemini APIに送信するプロンプトを生成
-function generatePrompt(tiles: string[], handTiles: string[]): string {
+function generatePrompt(tiles: string[], handTiles: string[], detectedYaku: any[]): string {
   const selectedCount = handTiles.length;
   const japaneseTiles = convertTilesToJapanese(tiles);
   const japaneseHandTiles = convertTilesToJapanese(handTiles);
@@ -437,84 +976,50 @@ function generatePrompt(tiles: string[], handTiles: string[]): string {
    - 事前計算された順子・刻子・対子・塔子を活用してください
 
 【目標】
-**利用可能な牌から作れそうな役を分析し、その役について説明してください。**
+**検出された役のdescription部分を補完してください。**
 
-【役の分析対象】
-以下のすべての役について、利用可能な牌から作れそうなものを分析してください：
+【検出された役のdescription補完】
+以下の役が検出されました。各役について、初心者にも分かりやすい説明を補完してください：
 
-**役満系**:
-- 国士無双: 19字牌で12種類以上
-- 四暗刻: 刻子4個以上
-- 字一色: 字牌のみ
-- 清老頭: 老頭牌（1,9）のみ
-- 緑一色: 緑色の牌のみ
-- 大三元: 三元牌（白・發・中）をすべて刻子
-- 小四喜: 風牌3種類を刻子、1種類を雀頭
-- 大四喜: 風牌4種類すべてを刻子
-- 四槓子: 槓子4つ
-- 九蓮宝燈: 同色で1112345678999+任意1枚
-- 純正九蓮宝燈: 九蓮宝燈の完全形
+${detectedYaku.map(yaku => `- ${yaku.yakuName}: ${yaku.description}`).join('\n')}
 
-**高得点役**:
-- 清一色: 萬子/筒子/索子のいずれかが13枚以上
-- 混一色: 萬子+字牌、筒子+字牌、索子+字牌で13枚以上
-- 三暗刻: 刻子3個以上
-- 七対子: 対子6個以上
-- 一気通貫: 順子で1-9の連続
-- 三色同順: 萬子・筒子・索子で同じ数字の順子
-- 二盃口: 同じ順子の組み合わせが2つ
-- 純全帯么九: 老頭牌を含む順子・刻子のみ
-- 混全帯么九: 老頭牌または字牌を含む順子・刻子のみ
-- 混老頭: 老頭牌と字牌のみ
-- 三色同刻: 萬子・筒子・索子で同じ数字の刻子
-- 小三元: 三元牌2種類を刻子、1種類を雀頭
-- 三槓子: 槓子3つ
-- 対々和: 刻子3つ+対子1つ
+【補完の指示】
+- 各役について、簡潔で分かりやすい説明を記述してください（1-2文程度）
+- その役と同時に狙えそうな他の役があれば併記してください
+  * 七対子はタンヤオやホンイツと同時に狙える
+  * 一気通貫と混一色は同時に狙える etc...
+- 逆に同時に成立しない役は絶対に併記しないでください
+  * 一気通貫とタンヤオ、混一色と清一色 etc...
+- 牌の表記は「1m,2m,3m」のような形式で記述してください
+- 役の矛盾した推奨は絶対にしないでください：
+  * タンヤオなのに1・9・字牌を含む面子を推奨
+  * チャンタ系（純全帯么九、混全帯么九）なのに2～8のみの面子を推奨
+  * 七対子なのに順子・刻子を推奨
+  * 清一色なのに字牌を推奨
+- 役の点数と基本的な戦略のみを記述してください
 
-**基本役**:
-- 平和: 順子のみで雀頭は老頭牌以外
-- 断么九: 2-8の数牌のみ
-- 一盃口: 同じ順子が2つ
-- 立直: 門前で聴牌宣言
-- 一発: 立直後1巡以内で和了
-- 門前清自摸和: 門前で自摸和了
-- 槍槓: 槓子完成時に和了
-- 嶺上開花: 槓ドラで和了
-- 海底摸月: 最後の牌で和了
-- 河底撈魚: 最後の牌をロン和了
-
-**役牌**:
-- 自風牌: 自分の風の刻子・雀頭
-- 場風牌: 場の風の刻子・雀頭
-- 白・發・中: 三元牌の刻子・雀頭
 
 【出力形式】
 以下のJSON形式で出力してください：
 
 \`\`\`json
 {
-  "analysis": "牌種分析（萬子○枚、筒子○枚、索子○枚、字牌○枚）と作れそうな役の簡潔な説明",
   "yakuAnalysis": [
     {
-      "yakuName": "清一色",
-      "possibility": "高い/中程度/低い",
-      "description": "萬子が13枚以上あるため、清一色を狙えます。清一色は6翻の高得点役で、同じ色の牌だけで手牌を作る役です。"
-    },
-    {
-      "yakuName": "七対子",
-      "possibility": "中程度",
-      "description": "対子が6個以上あるため、七対子を狙えます。七対子は2翻の役で、7つの対子で手牌を完成させる特殊な形です。"
+      "yakuName": "検出された役名",
+      "possibility": "コードで決定された可能性（変更しないでください）",
+      "description": "補完された簡潔な説明"
     }
   ]
 }
 \`\`\`
 
 【注意事項】
-- 初心者にも理解しやすい自然言語で説明してください
-- 事前計算された面子情報を最大限活用してください
-- 牌の表記は必ず「1m,2m,3m」のような形式で記述し、視覚的に分かりやすくしてください`;
-
-  // 特別指示は削除
+- 簡潔で分かりやすい説明を心がけてください
+- その役と同時に狙える他の役があれば併記してください
+- 牌の表記は「1m,2m,3m」形式で記述してください
+- 役の矛盾した推奨は絶対に避けてください
+- 具体的な牌の組み合わせ例を示してください`;
 
   return prompt;
 }
@@ -550,30 +1055,35 @@ export async function POST(req: Request) {
       // Gemini APIクライアントを取得
       const ai = getGeminiClient();
 
-      // プロンプトを生成
-      const prompt = generatePrompt(body.tiles, body.handTiles);
-      console.log('Sending request to Gemini API...');
+
+
+      // 順子・刻子を事前計算
+      const possibleMelds = findPossibleMelds(body.tiles);
+      const tileCounts = countTilesByType(body.tiles);
+
+      // 役を自動検出
+      const detectedYaku = detectPossibleYaku(body.tiles, possibleMelds, tileCounts);
+
+      // プロンプトを生成（検出された役のリストを含む）
+      const prompt = generatePrompt(body.tiles, body.handTiles, detectedYaku);
+
+      // Gemini APIに送信
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: prompt,
         config: {
-          temperature: 0.3,  // 一貫性を重視
-          topP: 0.8,        // 多様性を適度に保つ
-          maxOutputTokens: 4096,  // より多くの回答長を確保
-          thinkingConfig: {
-            thinkingBudget: 0, // 思考機能を無効化してスピード優先
-          },
+          temperature: 0.3,
+          topP: 0.8,
+          maxOutputTokens: 4096,
+          thinkingConfig: { thinkingBudget: 0 }
         }
       });
 
       const text = response.text || '';
 
-      console.log('Response length:', text.length);
-
       // JSONレスポンスを解析
       let parsedResponse;
       try {
-        console.log('Raw response text:', text.substring(0, 500) + '...');
 
         // JSON部分を抽出（```json と ``` で囲まれている可能性がある）
         let jsonString = text;
@@ -590,8 +1100,6 @@ export async function POST(req: Request) {
           }
         }
 
-        console.log('Extracted JSON string:', jsonString.substring(0, 300) + '...');
-
         // JSON文字列が空でない場合のみ解析を試行
         if (jsonString.trim()) {
           parsedResponse = JSON.parse(jsonString);
@@ -602,19 +1110,22 @@ export async function POST(req: Request) {
         console.error('JSON parse error:', parseError);
         console.error('Failed to parse JSON. Using fallback response.');
 
-        // JSON解析に失敗した場合はテキストをそのまま使用し、空の提案を返す
+        // JSON解析に失敗した場合は空の提案を返す
         parsedResponse = {
-          analysis: text,
           yakuAnalysis: []
         };
       }
 
-      // 順子・刻子を事前計算
-      const possibleMelds = findPossibleMelds(body.tiles);
-      const tileCounts = countTilesByType(body.tiles);
-
-      // 役を自動検出
-      const detectedYaku = detectPossibleYaku(body.tiles, possibleMelds, tileCounts);
+      // 検出された役のdescriptionをGeminiの回答で補完
+      const enhancedYaku = detectedYaku.map(yaku => {
+        const geminiResponse = parsedResponse.yakuAnalysis?.find((geminiYaku: any) =>
+          geminiYaku.yakuName === yaku.yakuName
+        );
+        return {
+          ...yaku,
+          description: geminiResponse?.description || yaku.description
+        };
+      });
 
       // レスポンスを新しい形式に変換
       const suggestions = {
@@ -622,13 +1133,12 @@ export async function POST(req: Request) {
           // 基本情報
           tiles: body.handTiles,
           waitingTiles: [],
-          analysis: parsedResponse.analysis || text,
           source: "gemini",
           melds: possibleMelds,
           tileCounts: tileCounts,
 
-          // 役の分析
-          yakuAnalysis: parsedResponse.yakuAnalysis || detectedYaku || []
+          // 役の分析（Geminiで補完されたdescription）
+          yakuAnalysis: enhancedYaku
         }]
       };
 
@@ -651,7 +1161,6 @@ export async function POST(req: Request) {
                 yaku: ["タンヤオ"]
               }
             ],
-            analysis: "Gemini APIが利用できないため、基本的な提案を表示しています。",
             source: "fallback"
           }
         ]

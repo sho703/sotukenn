@@ -102,7 +102,6 @@ export interface Melds {
 export interface TenpaiPattern {
   tiles: TileType[];
   waitingTiles: WaitingTile[];
-  analysis?: string;
   source?: string;
   yakuAnalysis?: YakuAnalysis[];
   melds?: Melds;
