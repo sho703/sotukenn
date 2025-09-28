@@ -164,18 +164,18 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
 
     // 4面子1雀頭を作るには、面子が4個以上、対子が1個以上必要
     if (totalMelds >= 4 && totalPairs >= 1) {
-      yakuList.push({
+    yakuList.push({
         yakuName: `混一色（${honitsuSuitNames[suit]}）`,
         possibility: "高い",
         description: `${honitsuSuitNames[suit]}と字牌で面子${totalMelds}個（順子${suitSequences.length}個、刻子${suitTriplets.length}個）と対子${totalPairs}個があるため、混一色を狙えます。混一色は3翻の役です。`
       });
     } else if (totalMelds >= 3 && totalPairs >= 1) {
-      yakuList.push({
+    yakuList.push({
         yakuName: `混一色（${honitsuSuitNames[suit]}）`,
-        possibility: "中程度",
+      possibility: "中程度",
         description: `${honitsuSuitNames[suit]}と字牌で面子${totalMelds}個（順子${suitSequences.length}個、刻子${suitTriplets.length}個）と対子${totalPairs}個があるため、混一色の可能性があります。混一色は3翻の役です。`
-      });
-    }
+    });
+  }
   });
 
   // 字一色: 字牌のみ
@@ -249,7 +249,7 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     const has789 = sequenceNumbers.includes(7);
 
     if (has123 && has456 && has789) {
-      yakuList.push({
+    yakuList.push({
         yakuName: `一気通貫（${suitNames[suit]}）`,
         possibility: "高い",
         description: `${suitNames[suit]}で123, 456, 789の順子が揃っているため、一気通貫を狙えます。一気通貫は2翻の役で、同色で1-9の連続する順子を作る役です。`
@@ -262,18 +262,18 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
 
       const completedCount = 3 - missingSequences.length;
       if (completedCount >= 2) {
-        yakuList.push({
+    yakuList.push({
           yakuName: `一気通貫（${suitNames[suit]}）`,
           possibility: "中程度",
           description: `${suitNames[suit]}で${completedCount}組の順子が揃っており、残り${missingSequences.join('、')}の順子で一気通貫を狙えます。一気通貫は2翻の役です。`
         });
       } else if (completedCount >= 1) {
-        yakuList.push({
+    yakuList.push({
           yakuName: `一気通貫（${suitNames[suit]}）`,
-          possibility: "低い",
+      possibility: "低い",
           description: `${suitNames[suit]}で${completedCount}組の順子が揃っており、残り${missingSequences.join('、')}の順子で一気通貫を狙えます。一気通貫は2翻の役です。`
-        });
-      }
+    });
+  }
     }
   });
 
@@ -298,12 +298,12 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     const uniqueSuits = [...new Set(suits)];
     if (uniqueSuits.length >= 3) {
       // 3色揃っている場合のみ「高い」可能性
-      yakuList.push({
-        yakuName: "三色同順",
+    yakuList.push({
+      yakuName: "三色同順",
         possibility: "高い",
         description: `${number}の順子が萬子・筒子・索子の${uniqueSuits.length}色で揃っているため、三色同順を狙えます。三色同順は2翻の役で、萬子・筒子・索子で同じ数字の順子を作る役です。`
-      });
-    }
+    });
+  }
     // 2色以下は検出しない（厳密化）
   });
 
@@ -328,12 +328,12 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     const uniqueSuits = [...new Set(suits)];
     if (uniqueSuits.length >= 3) {
       // 3色揃っている場合のみ「高い」可能性
-      yakuList.push({
-        yakuName: "三色同刻",
+    yakuList.push({
+      yakuName: "三色同刻",
         possibility: "高い",
         description: `${number}の刻子が萬子・筒子・索子の${uniqueSuits.length}色で揃っているため、三色同刻を狙えます。三色同刻は2翻の役で、萬子・筒子・索子で同じ数字の刻子を作る役です。`
-      });
-    }
+    });
+  }
     // 2色以下は検出しない（厳密化）
   });
 
@@ -382,19 +382,19 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     // 2-8の数牌で構成される順子の数
     const tanyaoSequences = sequences.filter((seq: string[]) => {
       return seq.every(tile => {
-        if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
-          const number = parseInt(tile[0]);
-          return number >= 2 && number <= 8;
-        }
+    if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
+      const number = parseInt(tile[0]);
+      return number >= 2 && number <= 8;
+    }
         return false;
       });
-    });
+  });
 
     // 2-8の数牌で構成される対子の数
     const tanyaoPairs = pairs.filter((pair: string[]) => {
       return pair.every(tile => {
-        if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
-          const number = parseInt(tile[0]);
+    if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
+      const number = parseInt(tile[0]);
           return number >= 2 && number <= 8;
         }
         return false;
@@ -414,15 +414,15 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
 
     // 4面子1雀頭を作るために必要な組み合わせをチェック
     if (tanyaoSequences.length >= 3 && tanyaoPairs.length >= 1) {
-      yakuList.push({
-        yakuName: "タンヤオ",
-        possibility: "高い",
+    yakuList.push({
+      yakuName: "タンヤオ",
+      possibility: "高い",
         description: `2-8の数牌の順子${tanyaoSequences.length}個と対子${tanyaoPairs.length}個があるため、タンヤオを狙えます。タンヤオは1翻の役で、2-8の数牌のみで手牌を作る役です。`
-      });
+    });
     } else if (tanyaoSequences.length >= 2 && tanyaoPairs.length >= 1 && tanyaoTriplets.length >= 1) {
-      yakuList.push({
-        yakuName: "タンヤオ",
-        possibility: "中程度",
+    yakuList.push({
+      yakuName: "タンヤオ",
+      possibility: "中程度",
         description: `2-8の数牌の順子${tanyaoSequences.length}個、刻子${tanyaoTriplets.length}個、対子${tanyaoPairs.length}個があるため、タンヤオの可能性があります。タンヤオは1翻の役です。`
       });
     } else if (tanyaoSequences.length >= 1 && tanyaoPairs.length >= 1 && tanyaoTriplets.length >= 2) {
@@ -478,19 +478,20 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
   }
 
   // 純全帯么九: すべての面子と雀頭に1・9の牌が含まれる
-  // 純全帯么九の条件チェック：4面子1雀頭を作るために必要な組み合わせを厳密にチェック
-  if (sequences.length >= 3 && pairs.length >= 1) {
-    // 1・9を含む順子の数
-    const junchanSequences = sequences.filter((seq: string[]) => {
-      return seq.some(tile => {
-        if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
-          const number = parseInt(tile[0]);
-          return number === 1 || number === 9;
-        }
-        return false;
-      });
+  // 純全帯么九の条件チェック：1・9を含む順子ベースで厳密にチェック
+  // 1・9を含む順子の数
+  const junchanSequences = sequences.filter((seq: string[]) => {
+    return seq.some(tile => {
+      if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
+        const number = parseInt(tile[0]);
+        return number === 1 || number === 9;
+      }
+      return false;
     });
+  });
 
+  // 1・9を含む順子が3個未満なら検出しない
+  if (junchanSequences.length >= 3) {
     // 1・9の数牌で構成される対子の数
     const junchanPairs = pairs.filter((pair: string[]) => {
       return pair.every(tile => {
@@ -513,40 +514,46 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
       });
     });
 
-    // 厳密な4面子1雀頭の組み合わせチェック
-    const totalMelds = junchanSequences.length + junchanTriplets.length;
-    const totalPairs = junchanPairs.length;
-
-    // 4面子1雀頭を作るには、面子が4個以上、対子が1個以上必要
-    if (totalMelds >= 4 && totalPairs >= 1) {
+    if (junchanSequences.length >= 4) {
+      // 1・9を含む順子が4個以上ある場合のみ「高い」で検出
       yakuList.push({
         yakuName: "純全帯么九",
         possibility: "高い",
-        description: `1・9を含む面子${totalMelds}個（順子${junchanSequences.length}個、刻子${junchanTriplets.length}個）と1・9の対子${totalPairs}個があるため、純全帯么九を狙えます。純全帯么九は2翻の役です。`
+        description: `1・9を含む順子${junchanSequences.length}個があるため、純全帯么九を狙えます。純全帯么九は2翻の役で、すべての面子と雀頭に1・9の牌が含まれる役です。`
       });
-    } else if (totalMelds >= 3 && totalPairs >= 1) {
-      yakuList.push({
-        yakuName: "純全帯么九",
-        possibility: "中程度",
-        description: `1・9を含む面子${totalMelds}個（順子${junchanSequences.length}個、刻子${junchanTriplets.length}個）と1・9の対子${totalPairs}個があるため、純全帯么九の可能性があります。純全帯么九は2翻の役です。`
-      });
+    } else if (junchanSequences.length >= 3) {
+      // 1・9を含む順子が3個の場合、1・9の刻子または対子が十分にある場合のみ「中程度」で検出
+      const totalMelds = junchanSequences.length + junchanTriplets.length;
+      const totalPairs = junchanPairs.length;
+
+      // 4面子1雀頭を作るには、合計で4面子以上、対子1個以上必要
+      if (totalMelds >= 4 && totalPairs >= 1) {
+        yakuList.push({
+          yakuName: "純全帯么九",
+          possibility: "中程度",
+          description: `1・9を含む面子${totalMelds}個（順子${junchanSequences.length}個、刻子${junchanTriplets.length}個）と1・9の対子${totalPairs}個があるため、純全帯么九の可能性があります。純全帯么九は2翻の役です。`
+        });
+      }
+      // 条件を満たさない場合は検出しない
     }
   }
+  // 1・9を含む順子が3個未満の場合は検出しない
 
   // 混全帯么九: すべての面子と雀頭に1・9の牌が含まれる（字牌も可）
-  // 混全帯么九の条件チェック：4面子1雀頭を作るために必要な組み合わせを厳密にチェック
-  if (sequences.length >= 3 && pairs.length >= 1) {
-    // 1・9を含む順子の数
-    const honchanSequences = sequences.filter((seq: string[]) => {
-      return seq.some(tile => {
-        if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
-          const number = parseInt(tile[0]);
-          return number === 1 || number === 9;
-        }
-        return false;
-      });
+  // 混全帯么九の条件チェック：1・9を含む順子ベースで厳密にチェック
+  // 1・9を含む順子の数
+  const honchanSequences = sequences.filter((seq: string[]) => {
+    return seq.some(tile => {
+      if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
+        const number = parseInt(tile[0]);
+        return number === 1 || number === 9;
+      }
+      return false;
     });
+  });
 
+  // 1・9を含む順子が3個未満なら検出しない
+  if (honchanSequences.length >= 3) {
     // 1・9の数牌か字牌で構成される対子の数
     const honchanPairs = pairs.filter((pair: string[]) => {
       return pair.every(tile => {
@@ -573,25 +580,30 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
       });
     });
 
-    // 厳密な4面子1雀頭の組み合わせチェック
-    const totalMelds = honchanSequences.length + honchanTriplets.length;
-    const totalPairs = honchanPairs.length;
-
-    // 4面子1雀頭を作るには、面子が4個以上、対子が1個以上必要
-    if (totalMelds >= 4 && totalPairs >= 1) {
+    if (honchanSequences.length >= 4) {
+      // 1・9を含む順子が4個以上ある場合のみ「高い」で検出
       yakuList.push({
         yakuName: "混全帯么九",
         possibility: "高い",
-        description: `1・9を含む面子${totalMelds}個（順子${honchanSequences.length}個、刻子${honchanTriplets.length}個）と1・9の数牌か字牌の対子${totalPairs}個があるため、混全帯么九を狙えます。混全帯么九は2翻の役です。`
+        description: `1・9を含む順子${honchanSequences.length}個があるため、混全帯么九を狙えます。混全帯么九は2翻の役で、すべての面子と雀頭に1・9の牌が含まれる役です。`
       });
-    } else if (totalMelds >= 3 && totalPairs >= 1) {
-      yakuList.push({
-        yakuName: "混全帯么九",
-        possibility: "中程度",
-        description: `1・9を含む面子${totalMelds}個（順子${honchanSequences.length}個、刻子${honchanTriplets.length}個）と1・9の数牌か字牌の対子${totalPairs}個があるため、混全帯么九の可能性があります。混全帯么九は2翻の役です。`
-      });
+    } else if (honchanSequences.length >= 3) {
+      // 1・9を含む順子が3個の場合、1・9の刻子または対子が十分にある場合のみ「中程度」で検出
+      const totalMelds = honchanSequences.length + honchanTriplets.length;
+      const totalPairs = honchanPairs.length;
+
+      // 4面子1雀頭を作るには、合計で4面子以上、対子1個以上必要
+      if (totalMelds >= 4 && totalPairs >= 1) {
+        yakuList.push({
+          yakuName: "混全帯么九",
+          possibility: "中程度",
+          description: `1・9を含む面子${totalMelds}個（順子${honchanSequences.length}個、刻子${honchanTriplets.length}個）と1・9の数牌か字牌の対子${totalPairs}個があるため、混全帯么九の可能性があります。混全帯么九は2翻の役です。`
+        });
+      }
+      // 条件を満たさない場合は検出しない
     }
   }
+  // 1・9を含む順子が3個未満の場合は検出しない
 
   // 混老頭: すべての面子と雀頭に1・9の牌か字牌が含まれる
   // 混老頭の条件チェック：刻子ベースで厳密にチェック
@@ -855,17 +867,19 @@ function findPossibleMelds(tiles: string[]): { sequences: string[][], triplets: 
       }
     }
 
-    // 塔子（ターツ）を探す
+    // 塔子（ターツ）を探す（順子で使わなかった牌のみ）
     // 連続する2枚（例：3s4s）- 両面待ち
     for (let i = 1; i <= 8; i++) {
-      if (numbers.includes(i) && numbers.includes(i + 1)) {
+      if (numbers.includes(i) && numbers.includes(i + 1) &&
+        !usedInSequences.has(i) && !usedInSequences.has(i + 1)) {
         taatsu.push([`${i}${suit}`, `${i + 1}${suit}`]);
       }
     }
 
     // 1枚抜けの2枚（例：3s5s）- カンチャン待ち
     for (let i = 1; i <= 7; i++) {
-      if (numbers.includes(i) && numbers.includes(i + 2)) {
+      if (numbers.includes(i) && numbers.includes(i + 2) &&
+        !usedInSequences.has(i) && !usedInSequences.has(i + 2)) {
         taatsu.push([`${i}${suit}`, `${i + 2}${suit}`]);
       }
     }
@@ -985,17 +999,8 @@ ${detectedYaku.map(yaku => `- ${yaku.yakuName}: ${yaku.description}`).join('\n')
 
 【補完の指示】
 - 各役について、簡潔で分かりやすい説明を記述してください（1-2文程度）
-- その役と同時に狙えそうな他の役があれば併記してください
-  * 七対子はタンヤオやホンイツと同時に狙える
-  * 一気通貫と混一色は同時に狙える etc...
-- 逆に同時に成立しない役は絶対に併記しないでください
-  * 一気通貫とタンヤオ、混一色と清一色 etc...
 - 牌の表記は「1m,2m,3m」のような形式で記述してください
-- 役の矛盾した推奨は絶対にしないでください：
-  * タンヤオなのに1・9・字牌を含む面子を推奨
-  * チャンタ系（純全帯么九、混全帯么九）なのに2～8のみの面子を推奨
-  * 七対子なのに順子・刻子を推奨
-  * 清一色なのに字牌を推奨
+- 役の矛盾した推奨は絶対にしないでください（例：タンヤオなのに789順子を推奨するなど）
 - 役の点数と基本的な戦略のみを記述してください
 
 
@@ -1016,10 +1021,10 @@ ${detectedYaku.map(yaku => `- ${yaku.yakuName}: ${yaku.description}`).join('\n')
 
 【注意事項】
 - 簡潔で分かりやすい説明を心がけてください
-- その役と同時に狙える他の役があれば併記してください
 - 牌の表記は「1m,2m,3m」形式で記述してください
-- 役の矛盾した推奨は絶対に避けてください
-- 具体的な牌の組み合わせ例を示してください`;
+- 役の矛盾した推奨は絶対に避けてください`;
+
+  // 特別指示は削除
 
   return prompt;
 }

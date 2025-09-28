@@ -629,10 +629,10 @@ export function GameBoard({
                     <h3 className="text-xl font-japanese font-bold mb-4 text-mahjong-gold-300 text-center">
                       作れる面子
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="flex flex-wrap justify-center gap-4">
                       {/* 順子 */}
                       {suggestions[0].melds.sequences.length > 0 && (
-                        <div className="bg-mahjong-table-500/20 p-4 rounded-xl border-2 border-mahjong-table-400/30">
+                        <div className="bg-mahjong-table-500/20 p-4 rounded-xl border-2 border-mahjong-table-400/30 min-w-[200px] max-w-[280px]">
                           <p className="text-sm text-mahjong-gold-300 font-semibold mb-3 text-center">順子 ({suggestions[0].melds.sequences.length}個)</p>
                           <div className="flex flex-wrap gap-2 justify-center">
                             {suggestions[0].melds.sequences.map((sequence: string[], idx: number) => (
@@ -659,7 +659,7 @@ export function GameBoard({
 
                       {/* 刻子 */}
                       {suggestions[0].melds.triplets.length > 0 && (
-                        <div className="bg-mahjong-table-500/20 p-4 rounded-xl border-2 border-mahjong-table-400/30">
+                        <div className="bg-mahjong-table-500/20 p-4 rounded-xl border-2 border-mahjong-table-400/30 min-w-[200px] max-w-[280px]">
                           <p className="text-sm text-mahjong-gold-300 font-semibold mb-3 text-center">刻子 ({suggestions[0].melds.triplets.length}個)</p>
                           <div className="flex flex-wrap gap-2 justify-center">
                             {suggestions[0].melds.triplets.map((triplet: string[], idx: number) => (
@@ -686,7 +686,7 @@ export function GameBoard({
 
                       {/* 対子 */}
                       {suggestions[0].melds.pairs.length > 0 && (
-                        <div className="bg-mahjong-table-500/20 p-4 rounded-xl border-2 border-mahjong-table-400/30">
+                        <div className="bg-mahjong-table-500/20 p-4 rounded-xl border-2 border-mahjong-table-400/30 min-w-[200px] max-w-[280px]">
                           <p className="text-sm text-mahjong-gold-300 font-semibold mb-3 text-center">対子 ({suggestions[0].melds.pairs.length}個)</p>
                           <div className="flex flex-wrap gap-2 justify-center">
                             {suggestions[0].melds.pairs.map((pair: string[], idx: number) => (
@@ -713,7 +713,7 @@ export function GameBoard({
 
                       {/* 塔子（ターツ） */}
                       {suggestions[0].melds.taatsu.length > 0 && (
-                        <div className="bg-mahjong-table-500/20 p-4 rounded-xl border-2 border-mahjong-table-400/30">
+                        <div className="bg-mahjong-table-500/20 p-4 rounded-xl border-2 border-mahjong-table-400/30 min-w-[200px] max-w-[280px]">
                           <p className="text-sm text-mahjong-gold-300 font-semibold mb-3 text-center">塔子 ({suggestions[0].melds.taatsu.length}個)</p>
                           <div className="flex flex-wrap gap-2 justify-center">
                             {suggestions[0].melds.taatsu.map((taatsu: string[], idx: number) => (
