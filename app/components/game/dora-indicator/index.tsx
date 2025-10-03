@@ -18,6 +18,7 @@ export function DoraIndicator({ dora }: Props) {
             src={tileImagePath}
             alt={`ドラ ${dora}`}
             fill
+            sizes="32px"
             className="object-contain"
           />
         </div>

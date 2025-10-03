@@ -3,6 +3,7 @@
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useSensor, useSensors, PointerSensor, TouchSensor } from '@dnd-kit/core';
 import { useState, useEffect, useRef } from 'react';
 import { HandZone } from './hand-zone';
+import { HandZoneWithBlocks } from './hand-zone-with-blocks';
 import { MahjongGrid } from './mahjong-grid';
 import { MahjongTile } from './mahjong-tile';
 import { DoraIndicator } from './dora-indicator';
@@ -153,7 +154,7 @@ export function GameBoard({
     };
 
     const options = { passive: false, capture: true };
-    const moveOptions = { passive: true, capture: true }; // touchmoveはpassive: trueに
+    const moveOptions = { passive: false, capture: true }; // touchmoveもpassive: falseに変更
 
     document.addEventListener('touchstart', preventSwipe, options);
     document.addEventListener('touchmove', preventSwipeMove, moveOptions);
@@ -528,6 +529,7 @@ export function GameBoard({
                                 src={tile.imagePath}
                                 alt={tile.type}
                                 fill
+                                sizes="32px"
                                 className="object-contain"
                               />
                             </div>
@@ -541,6 +543,7 @@ export function GameBoard({
                                 src={tile.imagePath}
                                 alt={tile.type}
                                 fill
+                                sizes="32px"
                                 className="object-contain"
                               />
                             </div>
