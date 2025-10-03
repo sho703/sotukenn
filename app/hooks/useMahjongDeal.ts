@@ -327,6 +327,12 @@ export function useMahjongDeal(): MahjongDealHook {
     if (gamePhase === 'title') return;
     if (fromZone === toZone) return;
 
+    // 対局フェーズ中は牌の移動を制限
+    if (gamePhase === 'playing') {
+      console.warn('対局フェーズ中は牌の移動はできません');
+      return;
+    }
+
     let fromArr = fromZone === "hand" ? handTiles : poolTiles;
     let toArr = toZone === "hand" ? handTiles : poolTiles;
     const movingTile = fromArr.find((t) => t.id === tileId);
@@ -368,6 +374,12 @@ export function useMahjongDeal(): MahjongDealHook {
     toIdx: number
   ) => {
     if (gamePhase === 'title') return;
+
+    // 対局フェーズ中は牌の並び替えを制限
+    if (gamePhase === 'playing') {
+      console.warn('対局フェーズ中は牌の並び替えはできません');
+      return;
+    }
     const arr = zone === "hand" ? [...handTiles] : [...poolTiles];
     const [removed] = arr.splice(fromIdx, 1);
     arr.splice(toIdx, 0, removed);
@@ -386,7 +398,6 @@ export function useMahjongDeal(): MahjongDealHook {
       return;
     }
 
-
     // 和了判定処理中フラグを立てる
     setIsProcessingWin(true);
 
@@ -394,8 +405,8 @@ export function useMahjongDeal(): MahjongDealHook {
     setPlayerDiscards(prev => [...prev, tile]);
 
     // 捨て牌をpoolTilesから削除（手牌は変更しない）
-    const newPoolTiles = poolTiles.filter(t => t.id !== tile.id);
-    setPoolTiles(newPoolTiles);
+    // 状態更新を一括で行い、競合を防ぐ
+    setPoolTiles(prev => prev.filter(t => t.id !== tile.id));
     setIsPlayerTurn(false);
 
 
@@ -477,11 +488,15 @@ export function useMahjongDeal(): MahjongDealHook {
     setIsPlayerTurn(true);
 
     // 流局判定（CPUの捨て牌後）
-    if (newPoolTiles.length === 0) {
-      setGamePhase('draw');
-      setIsProcessingWin(false);
-      return;
-    }
+    // poolTilesの現在の状態を確認
+    setPoolTiles(currentPoolTiles => {
+      if (currentPoolTiles.length === 0) {
+        setGamePhase('draw');
+        setIsProcessingWin(false);
+        return currentPoolTiles;
+      }
+      return currentPoolTiles;
+    });
 
     // プレイヤーの和了判定（ロン）
     try {

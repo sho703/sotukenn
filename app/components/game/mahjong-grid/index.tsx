@@ -33,7 +33,15 @@ function SortableMahjongTile({ tile, index }: { tile: Tile; index: number }) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div
+      ref={setNodeRef}
+      style={{
+        ...style,
+        touchAction: 'none'
+      }}
+      {...attributes}
+      {...listeners}
+    >
       <MahjongTile
         tile={tile}
         selected={false}
@@ -52,7 +60,8 @@ export function MahjongGrid({ tiles = [], onTileDrop, onReorder }: Props) {
   return (
     <div
       ref={setNodeRef}
-      className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-2 p-4 bg-gray-100 rounded"
+      className="grid grid-cols-7 sm:grid-cols-9 md:grid-cols-11 lg:grid-cols-13 xl:grid-cols-15 2xl:grid-cols-17 gap-2 p-6 bg-transparent rounded max-w-7xl mx-auto"
+      style={{ touchAction: 'none' }}
     >
       <SortableContext
         id="pool"
@@ -69,4 +78,4 @@ export function MahjongGrid({ tiles = [], onTileDrop, onReorder }: Props) {
       </SortableContext>
     </div>
   );
-} 
+}

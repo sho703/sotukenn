@@ -164,18 +164,18 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
 
     // 4面子1雀頭を作るには、面子が4個以上、対子が1個以上必要
     if (totalMelds >= 4 && totalPairs >= 1) {
-    yakuList.push({
+      yakuList.push({
         yakuName: `混一色（${honitsuSuitNames[suit]}）`,
         possibility: "高い",
         description: `${honitsuSuitNames[suit]}と字牌で面子${totalMelds}個（順子${suitSequences.length}個、刻子${suitTriplets.length}個）と対子${totalPairs}個があるため、混一色を狙えます。混一色は3翻の役です。`
       });
     } else if (totalMelds >= 3 && totalPairs >= 1) {
-    yakuList.push({
+      yakuList.push({
         yakuName: `混一色（${honitsuSuitNames[suit]}）`,
-      possibility: "中程度",
+        possibility: "中程度",
         description: `${honitsuSuitNames[suit]}と字牌で面子${totalMelds}個（順子${suitSequences.length}個、刻子${suitTriplets.length}個）と対子${totalPairs}個があるため、混一色の可能性があります。混一色は3翻の役です。`
-    });
-  }
+      });
+    }
   });
 
   // 字一色: 字牌のみ
@@ -249,7 +249,7 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     const has789 = sequenceNumbers.includes(7);
 
     if (has123 && has456 && has789) {
-    yakuList.push({
+      yakuList.push({
         yakuName: `一気通貫（${suitNames[suit]}）`,
         possibility: "高い",
         description: `${suitNames[suit]}で123, 456, 789の順子が揃っているため、一気通貫を狙えます。一気通貫は2翻の役で、同色で1-9の連続する順子を作る役です。`
@@ -262,18 +262,18 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
 
       const completedCount = 3 - missingSequences.length;
       if (completedCount >= 2) {
-    yakuList.push({
+        yakuList.push({
           yakuName: `一気通貫（${suitNames[suit]}）`,
           possibility: "中程度",
           description: `${suitNames[suit]}で${completedCount}組の順子が揃っており、残り${missingSequences.join('、')}の順子で一気通貫を狙えます。一気通貫は2翻の役です。`
         });
       } else if (completedCount >= 1) {
-    yakuList.push({
+        yakuList.push({
           yakuName: `一気通貫（${suitNames[suit]}）`,
-      possibility: "低い",
+          possibility: "低い",
           description: `${suitNames[suit]}で${completedCount}組の順子が揃っており、残り${missingSequences.join('、')}の順子で一気通貫を狙えます。一気通貫は2翻の役です。`
-    });
-  }
+        });
+      }
     }
   });
 
@@ -298,12 +298,12 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     const uniqueSuits = [...new Set(suits)];
     if (uniqueSuits.length >= 3) {
       // 3色揃っている場合のみ「高い」可能性
-    yakuList.push({
-      yakuName: "三色同順",
+      yakuList.push({
+        yakuName: "三色同順",
         possibility: "高い",
         description: `${number}の順子が萬子・筒子・索子の${uniqueSuits.length}色で揃っているため、三色同順を狙えます。三色同順は2翻の役で、萬子・筒子・索子で同じ数字の順子を作る役です。`
-    });
-  }
+      });
+    }
     // 2色以下は検出しない（厳密化）
   });
 
@@ -328,12 +328,12 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     const uniqueSuits = [...new Set(suits)];
     if (uniqueSuits.length >= 3) {
       // 3色揃っている場合のみ「高い」可能性
-    yakuList.push({
-      yakuName: "三色同刻",
+      yakuList.push({
+        yakuName: "三色同刻",
         possibility: "高い",
         description: `${number}の刻子が萬子・筒子・索子の${uniqueSuits.length}色で揃っているため、三色同刻を狙えます。三色同刻は2翻の役で、萬子・筒子・索子で同じ数字の刻子を作る役です。`
-    });
-  }
+      });
+    }
     // 2色以下は検出しない（厳密化）
   });
 
@@ -382,19 +382,19 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     // 2-8の数牌で構成される順子の数
     const tanyaoSequences = sequences.filter((seq: string[]) => {
       return seq.every(tile => {
-    if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
-      const number = parseInt(tile[0]);
-      return number >= 2 && number <= 8;
-    }
+        if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
+          const number = parseInt(tile[0]);
+          return number >= 2 && number <= 8;
+        }
         return false;
       });
-  });
+    });
 
     // 2-8の数牌で構成される対子の数
     const tanyaoPairs = pairs.filter((pair: string[]) => {
       return pair.every(tile => {
-    if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
-      const number = parseInt(tile[0]);
+        if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
+          const number = parseInt(tile[0]);
           return number >= 2 && number <= 8;
         }
         return false;
@@ -414,15 +414,15 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
 
     // 4面子1雀頭を作るために必要な組み合わせをチェック
     if (tanyaoSequences.length >= 3 && tanyaoPairs.length >= 1) {
-    yakuList.push({
-      yakuName: "タンヤオ",
-      possibility: "高い",
+      yakuList.push({
+        yakuName: "タンヤオ",
+        possibility: "高い",
         description: `2-8の数牌の順子${tanyaoSequences.length}個と対子${tanyaoPairs.length}個があるため、タンヤオを狙えます。タンヤオは1翻の役で、2-8の数牌のみで手牌を作る役です。`
-    });
+      });
     } else if (tanyaoSequences.length >= 2 && tanyaoPairs.length >= 1 && tanyaoTriplets.length >= 1) {
-    yakuList.push({
-      yakuName: "タンヤオ",
-      possibility: "中程度",
+      yakuList.push({
+        yakuName: "タンヤオ",
+        possibility: "中程度",
         description: `2-8の数牌の順子${tanyaoSequences.length}個、刻子${tanyaoTriplets.length}個、対子${tanyaoPairs.length}個があるため、タンヤオの可能性があります。タンヤオは1翻の役です。`
       });
     } else if (tanyaoSequences.length >= 1 && tanyaoPairs.length >= 1 && tanyaoTriplets.length >= 2) {

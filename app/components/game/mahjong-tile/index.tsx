@@ -35,22 +35,31 @@ export function MahjongTile({ tile, selected, index, priority = false }: Props) 
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div
+      ref={setNodeRef}
+      style={{
+        ...style,
+        touchAction: 'none'
+      }}
+      {...attributes}
+      {...listeners}
+    >
       <div
         className={cn(
           "inline-flex cursor-grab active:cursor-grabbing select-none",
-          "w-10 h-14 sm:w-12 sm:h-16 md:w-14 md:h-20",
+          "w-12 h-16 sm:w-14 sm:h-18 md:w-16 md:h-22",
           selected ? "bg-blue-50" : "bg-transparent"
         )}
+        style={{ touchAction: 'none' }}
       >
         <div className="relative w-full h-full flex items-center justify-center">
-          <div className="relative w-[85%] h-[85%]">
+          <div className="relative w-full h-full">
             {!imageError ? (
               <Image
                 src={tile.imagePath}
                 alt={tile.type}
                 fill
-                sizes="(max-width: 640px) 40px, (max-width: 768px) 48px, 56px"
+                sizes="(max-width: 640px) 48px, (max-width: 768px) 56px, 64px"
                 className="object-contain"
                 priority={priority}
                 onError={() => setImageError(true)}

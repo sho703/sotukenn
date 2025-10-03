@@ -33,7 +33,15 @@ function SortableMahjongTile({ tile, index }: { tile: Tile; index: number }) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div
+      ref={setNodeRef}
+      style={{
+        ...style,
+        touchAction: 'none'
+      }}
+      {...attributes}
+      {...listeners}
+    >
       <MahjongTile
         tile={tile}
         selected
@@ -52,9 +60,10 @@ export function HandZone({ tiles = [], onTileDrop, onReorder }: Props) {
   return (
     <div
       ref={setNodeRef}
-      className="min-h-14 flex flex-wrap gap-2 p-4 border-2 border-dashed border-blue-400 rounded bg-blue-50"
+      className="min-h-24 flex flex-wrap justify-center gap-2 p-6 border-2 border-dashed border-blue-400 rounded-lg bg-blue-50/80"
+      style={{ touchAction: 'none' }}
     >
-      {tiles.length === 0 && <div className="text-gray-400">ここに13枚ドラッグ</div>}
+      {tiles.length === 0 && <div className="text-gray-400 text-lg font-semibold">ここに13枚ドラッグ</div>}
       <SortableContext
         id="hand"
         items={tiles.map(t => t.id)}
