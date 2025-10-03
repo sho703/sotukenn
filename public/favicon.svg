@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" fill="#D4AF37" rx="4"/>
+  <rect x="4" y="4" width="24" height="24" fill="#F5E6A3" rx="2"/>
+  <text x="16" y="22" font-family="serif" font-size="18" text-anchor="middle" fill="#B8860B" font-weight="bold">雀</text>
+</svg>

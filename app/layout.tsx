@@ -17,6 +17,9 @@ const notoSerifJP = Noto_Serif_JP({
 export const metadata = {
   title: "麻雀練習アプリ",
   description: "麻雀の手牌練習ができるアプリケーション",
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({
