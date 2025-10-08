@@ -68,7 +68,7 @@ export function HandZone({ tiles = [], onTileDrop, onReorder }: Props) {
       // 456p (順子)
       { id: 'ex4', type: 'pin', imagePath: '/images/tiles/4pin.gif' }, { id: 'ex5', type: 'pin', imagePath: '/images/tiles/5pin.gif' }, { id: 'ex6', type: 'pin', imagePath: '/images/tiles/6pin.gif' },
       // 789s (順子)
-      { id: 'ex7', type: 'sou', imagePath: '/images/tiles/7sou.gif' }, { id: 'ex8', type: 'sou', imagePath: '/images/tiles/8sou.gif' }, { id: 'ex9', type: 'sou', imagePath: '/images/tiles/9sou.gif' },
+      { id: 'ex7', type: 'sou', imagePath: '/images/tiles/9sou.gif' }, { id: 'ex8', type: 'sou', imagePath: '/images/tiles/9sou.gif' }, { id: 'ex9', type: 'sou', imagePath: '/images/tiles/9sou.gif' },
       // 45s (順子)
       { id: 'ex10', type: 'sou', imagePath: '/images/tiles/4sou.gif' }, { id: 'ex11', type: 'sou', imagePath: '/images/tiles/5sou.gif' },
       // 南南 (雀頭)

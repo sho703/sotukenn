@@ -3,7 +3,6 @@
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useSensor, useSensors, PointerSensor, TouchSensor } from '@dnd-kit/core';
 import { useState, useEffect, useRef } from 'react';
 import { HandZone } from './hand-zone';
-import { HandZoneWithBlocks } from './hand-zone-with-blocks';
 import { MahjongGrid } from './mahjong-grid';
 import { MahjongTile } from './mahjong-tile';
 import { DoraIndicator } from './dora-indicator';
@@ -617,9 +616,25 @@ export function GameBoard({
               <div className="p-8 rounded-2xl text-center bg-gradient-to-br from-mahjong-table-600 to-mahjong-table-700 border-4 border-mahjong-gold-400 shadow-mahjong-tile-hover font-japanese">
                 <h2 className="text-4xl font-bold mb-6 text-white">🀄 流局（引き分け）</h2>
                 <div className="text-xl mb-8 text-mahjong-gold-200">
-                  <div className="mb-3">捨て牌候補が尽きました</div>
-                  <div className="mb-3">プレイヤー：{playerDiscards.length}枚捨て牌</div>
-                  <div className="mb-3">CPU：{cpuDiscards.length}枚捨て牌</div>
+                  <div className="mb-6">捨て牌候補が尽きました</div>
+
+                  {/* CPUのあたり牌表示 */}
+                  <div className="mb-6">
+                    <div className="text-lg font-semibold mb-3 text-white">相手（CPU）のあたり牌</div>
+                    <div className="flex justify-center gap-2 flex-wrap">
+                      {cpuState?.winningTile && (
+                        <div key={`cpu-winning-${cpuState.winningTile.id}`} className="w-12 h-16 sm:w-14 sm:h-18 md:w-16 md:h-22">
+                          <MahjongTile
+                            tile={cpuState.winningTile}
+                            selected={false}
+                            index={0}
+                            priority={true}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="text-lg text-mahjong-gold-300 mt-6 font-semibold">
                     ポイントは加算されません
                   </div>

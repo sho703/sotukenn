@@ -67,6 +67,7 @@ export function useMahjongDeal(): MahjongDealHook {
 
   // CPU状態
   const [cpuState, setCpuState] = useState<CpuState | null>(null);
+  const [cpuInitialTiles, setCpuInitialTiles] = useState<Tile[]>([]);
 
   // 対局状態
   const [playerDiscards, setPlayerDiscards] = useState<Tile[]>([]);
@@ -178,6 +179,7 @@ export function useMahjongDeal(): MahjongDealHook {
     setHandTiles([]);
     setPoolTiles([]);
     setCpuState(null);
+    setCpuInitialTiles([]);
     setPlayerDiscards([]);
     setCpuDiscards([]);
     setIsPlayerTurn(true);
@@ -197,6 +199,7 @@ export function useMahjongDeal(): MahjongDealHook {
     setHandTiles([]);
     setPoolTiles([]);
     setCpuState(null);
+    setCpuInitialTiles([]);
     setPlayerDiscards([]);
     setCpuDiscards([]);
     setIsPlayerTurn(true);
@@ -220,6 +223,7 @@ export function useMahjongDeal(): MahjongDealHook {
 
     // CPUの牌（次の34枚）
     const cpuTiles = allTiles.slice(34, 68);
+    setCpuInitialTiles(cpuTiles); // CPUの34枚を保存
 
     // ドラ牌（最後の1枚）
     const newDoraTile = allTiles[68];
@@ -252,6 +256,7 @@ export function useMahjongDeal(): MahjongDealHook {
       setHandTiles([]);
       setPoolTiles([]);
       setCpuState(null);
+      setCpuInitialTiles([]);
       setPlayerDiscards([]);
       setCpuDiscards([]);
       setWinningInfo(null);
@@ -268,8 +273,145 @@ export function useMahjongDeal(): MahjongDealHook {
       return;
     }
 
+    // 新しく生成されたCPU手牌を保存する変数
+    let finalCpuHandTiles: Tile[] = [];
 
-    // 聴牌チェック
+    // 1. CPU聴牌形生成（非同期）
+    try {
+      // 正しいCPUの34枚を取得
+      const cpuTiles = cpuInitialTiles.map(t => t.type);
+
+      const cpuResponse = await fetch('/api/generate-cpu-tenpai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tiles: cpuTiles,
+          dora
+        })
+      });
+
+      if (cpuResponse.ok) {
+        const cpuResult = await cpuResponse.json();
+
+        if (cpuResult.success) {
+          // CPU聴牌形を設定
+          const cpuHandTiles = cpuResult.hand.map((tileType: string) => ({
+            id: nextTileId(),
+            type: tileType,
+            imagePath: getTileImagePath(tileType)
+          }));
+          finalCpuHandTiles = cpuHandTiles; // 新しく生成された手牌を保存
+
+          // CPU聴牌チェック
+          const cpuTenpaiResponse = await fetch('/api/check-tenpai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tiles: cpuResult.hand,
+              dora
+            })
+          });
+
+          if (cpuTenpaiResponse.ok) {
+            const cpuTenpaiResult = await cpuTenpaiResponse.json();
+
+            if (cpuTenpaiResult.isTenpai) {
+              // CPU聴牌成功 - 新しいCPU状態を設定
+              const newCpuState = {
+                handTiles: cpuHandTiles,
+                discardTiles: [], // 後で設定
+                winningTile: { id: 'cpu-winning', type: '1m', imagePath: getTileImagePath('1m') } // 仮設定
+              };
+              await setCpuState(newCpuState);
+            } else {
+              // CPU聴牌失敗 - 七対子を作成
+              const chiitoitsuResponse = await fetch('/api/generate-cpu-tenpai', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  tiles: cpuTiles,
+                  dora,
+                  forceChiitoitsu: true
+                })
+              });
+
+              if (chiitoitsuResponse.ok) {
+                const chiitoitsuResult = await chiitoitsuResponse.json();
+                if (chiitoitsuResult.success) {
+                  const chiitoitsuHandTiles = chiitoitsuResult.hand.map((tileType: string) => ({
+                    id: nextTileId(),
+                    type: tileType,
+                    imagePath: getTileImagePath(tileType)
+                  }));
+                  finalCpuHandTiles = chiitoitsuHandTiles; // 七対子手牌を保存
+
+                  // 七対子作成後の聴牌チェック
+                  const chiitoitsuTenpaiResponse = await fetch('/api/check-tenpai', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      tiles: chiitoitsuResult.hand,
+                      dora
+                    })
+                  });
+
+                  if (chiitoitsuTenpaiResponse.ok) {
+                    const chiitoitsuTenpaiResult = await chiitoitsuTenpaiResponse.json();
+                    if (chiitoitsuTenpaiResult.isTenpai) {
+                      // 七対子聴牌成功
+                      const newCpuState = {
+                        handTiles: chiitoitsuHandTiles,
+                        discardTiles: [],
+                        winningTile: chiitoitsuTenpaiResult.waitingTiles.length > 0 ?
+                          { id: 'cpu-winning', type: chiitoitsuTenpaiResult.waitingTiles[0], imagePath: getTileImagePath(chiitoitsuTenpaiResult.waitingTiles[0]) } :
+                          { id: 'cpu-winning', type: '1m', imagePath: getTileImagePath('1m') }
+                      };
+                      await setCpuState(newCpuState);
+                    } else {
+                      // 七対子聴牌失敗 - 適当に21枚を捨て牌候補に割り当て
+                      const remainingTiles = cpuInitialTiles.filter(tile =>
+                        !chiitoitsuResult.hand.includes(tile.type)
+                      );
+                      const shuffledRemainingTiles = shuffle(remainingTiles);
+                      const newCpuState = {
+                        handTiles: chiitoitsuHandTiles,
+                        discardTiles: shuffledRemainingTiles.slice(0, 21),
+                        winningTile: { id: 'cpu-winning', type: '1m', imagePath: getTileImagePath('1m') }
+                      };
+                      await setCpuState(newCpuState);
+                    }
+                  } else {
+                    // 七対子聴牌チェック失敗 - 適当に21枚を捨て牌候補に割り当て
+                    const remainingTiles = cpuInitialTiles.filter(tile =>
+                      !chiitoitsuResult.hand.includes(tile.type)
+                    );
+                    const shuffledRemainingTiles = shuffle(remainingTiles);
+                    const newCpuState = {
+                      handTiles: chiitoitsuHandTiles,
+                      discardTiles: shuffledRemainingTiles.slice(0, 21),
+                      winningTile: { id: 'cpu-winning', type: '1m', imagePath: getTileImagePath('1m') }
+                    };
+                    await setCpuState(newCpuState);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('CPU聴牌形生成エラー:', error);
+      // エラー時は適当なあたり牌を作成
+      const randomTile = poolTiles[Math.floor(Math.random() * poolTiles.length)];
+      const newCpuState = {
+        handTiles: cpuState?.handTiles || [],
+        discardTiles: [],
+        winningTile: randomTile
+      };
+      await setCpuState(newCpuState);
+    }
+
+    // 2. プレイヤー聴牌チェック
     try {
       const response = await fetch('/api/check-tenpai', {
         method: 'POST',
@@ -303,6 +445,33 @@ export function useMahjongDeal(): MahjongDealHook {
       alert('聴牌チェック中にエラーが発生しました。');
       return;
     }
+
+    // CPUの捨て牌候補を設定（CPU選択された13枚以外の21枚をランダム順で）
+    // 新しく生成されたCPU手牌を直接使用
+
+    // CPU選択された13枚の種類と枚数をカウント
+    const selectedTileCounts = finalCpuHandTiles.reduce((acc, tile) => {
+      acc[tile.type] = (acc[tile.type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // 各牌について、使用された分を除外
+    const cpuDiscardTiles = [];
+    const remainingCounts = { ...selectedTileCounts };
+
+    for (const tile of cpuInitialTiles) {
+      if (remainingCounts[tile.type] > 0) {
+        remainingCounts[tile.type]--;
+      } else {
+        cpuDiscardTiles.push(tile);
+      }
+    }
+    const shuffledCpuDiscardTiles = shuffle(cpuDiscardTiles);
+    setCpuState(prev => prev ? {
+      ...prev,
+      handTiles: finalCpuHandTiles, // 新しく生成された手牌を設定
+      discardTiles: shuffledCpuDiscardTiles
+    } : null);
 
     // 残りの21枚を選択可能な捨て牌として設定
     // 元のpoolTilesから手牌に含まれていない牌を抽出
@@ -410,60 +579,44 @@ export function useMahjongDeal(): MahjongDealHook {
     setIsPlayerTurn(false);
 
 
-    // CPUの和了判定（ロン）
-    if (tile.type === cpuState.winningTile.type) {
-      try {
-        const response = await fetch('/api/check-win', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            tiles: cpuState.handTiles.map(t => t.type),
-            lastTile: tile.type,
-            dora: getDoraForPython(dora) // ドラ表示牌を1つ戻して送信
-          })
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          if (result.isWinning) {
-            const han = result.han || 1;
-            console.log('CPU和了判定結果:', {
-              han: han,
-              yaku: result.yaku,
-              fu: result.fu,
-              points: result.points
-            });
-            addScore('cpu', han);
-            setWinningInfo({
-              winner: 'cpu',
-              points: result.points || 1,
-              yaku: result.yaku || ['不明な役'],
-              winningTile: tile.type,
-              han: han,
-              fu: result.fu
-            });
-            setGamePhase('finished');
-            setIsProcessingWin(false);
-            return;
-          }
-        }
-      } catch (err) {
-        console.error('CPU和了判定エラー:', err);
-      }
-
-      // ライブラリでの判定に失敗した場合、ランダムで和了
-      const han = Math.floor(Math.random() * 3) + 1;
-      addScore('cpu', han);
-      setWinningInfo({
-        winner: 'cpu',
-        points: han * 1000, // 表示用の点数（飜数×1000）
-        yaku: ['ランダム和了', 'CPU特殊役'],
-        winningTile: tile.type,
-        han: han
+    // CPUの和了判定（ロン）- プレイヤーの捨て牌ごとにcheck-win APIを使用
+    try {
+      const response = await fetch('/api/check-win', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tiles: cpuState.handTiles.map(t => t.type),
+          lastTile: tile.type,
+          dora: getDoraForPython(dora) // ドラ表示牌を1つ戻して送信
+        })
       });
-      setGamePhase('finished');
-      setIsProcessingWin(false);
-      return;
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.isWinning) {
+          const han = result.han || 1;
+          console.log('CPU和了判定結果:', {
+            han: han,
+            yaku: result.yaku,
+            fu: result.fu,
+            points: result.points
+          });
+          addScore('cpu', han);
+          setWinningInfo({
+            winner: 'cpu',
+            points: result.points || 1,
+            yaku: result.yaku || ['不明な役'],
+            winningTile: tile.type,
+            han: han,
+            fu: result.fu
+          });
+          setGamePhase('finished');
+          setIsProcessingWin(false);
+          return;
+        }
+      }
+    } catch (err) {
+      console.error('CPU和了判定エラー:', err);
     }
 
     // プレイヤーが最後の1枚を捨てた場合は、CPUの捨て牌後に流局判定する
