@@ -254,13 +254,13 @@ export function GameBoard({
         }}
       >
         {/* 局数表示（左上） */}
-        <div className="absolute top-4 left-4 bg-mahjong-gold-500/90 backdrop-blur-sm text-white px-6 py-3 rounded-lg shadow-mahjong-button font-japanese font-bold text-2xl border-2 border-mahjong-gold-400">
+        <div className="absolute top-4 left-4 bg-mahjong-gold-500/90  text-white px-6 py-3 rounded-lg shadow-mahjong-button font-japanese font-bold text-2xl border-2 border-mahjong-gold-400">
           第{currentRound}局
         </div>
 
         {/* スコア表示（真ん中上） */}
         <div className="text-center mb-8">
-          <div className="bg-black/30 backdrop-blur-sm text-white px-10 py-6 rounded-2xl shadow-mahjong-button font-japanese font-bold text-3xl border-2 border-mahjong-gold-400/50 inline-block">
+          <div className="bg-black/30  text-white px-10 py-6 rounded-2xl shadow-mahjong-button font-japanese font-bold text-3xl border-2 border-mahjong-gold-400/50 inline-block">
             <span className="text-mahjong-blue-300">プレイヤー</span>
             <span className="mx-4 text-mahjong-gold-300">{score.player}</span>
             <span className="text-mahjong-gold-400">:</span>
@@ -271,7 +271,7 @@ export function GameBoard({
 
         <div className="space-y-8">
           {error && (
-            <div className="bg-mahjong-red-500/90 backdrop-blur-sm border-2 border-mahjong-red-400 text-white px-8 py-6 rounded-xl shadow-mahjong-button font-japanese font-semibold text-center text-xl">
+            <div className="bg-mahjong-red-500/90  border-2 border-mahjong-red-400 text-white px-8 py-6 rounded-xl shadow-mahjong-button font-japanese font-semibold text-center text-xl">
               ⚠️ {error}
             </div>
           )}
@@ -320,7 +320,7 @@ export function GameBoard({
                 </Button>
               </div>
 
-              <section className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
+              <section className="bg-black/20  rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="font-japanese font-bold text-2xl text-white">手牌選択（13枚を選んでください）</h2>
                   <div className="flex gap-3">
@@ -377,7 +377,7 @@ export function GameBoard({
                 </div>
               </section>
 
-              <section className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
+              <section className="bg-black/20  rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="font-japanese font-bold text-2xl text-white">牌プール</h2>
                   <DoraIndicator dora={dora} />
@@ -405,7 +405,7 @@ export function GameBoard({
               </div>
 
               {/* CPU手牌 */}
-              <section className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
+              <section className="bg-black/20  rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
                 <h2 className="mb-4 font-japanese font-bold text-2xl text-white">CPU手牌</h2>
                 <div className="flex gap-2 justify-center bg-mahjong-ivory-500/20 p-6 rounded-xl border-2 border-mahjong-ivory-400/30">
                   {Array.from({ length: 13 }, (_, i) => (
@@ -419,13 +419,13 @@ export function GameBoard({
 
               {/* 捨て牌履歴 */}
               <div className="grid grid-cols-2 gap-8">
-                <section className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
+                <section className="bg-black/20  rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
                   <h2 className="mb-4 font-japanese font-bold text-2xl text-mahjong-blue-300">あなたの捨て牌</h2>
                   <div className="bg-mahjong-blue-500/20 p-4 rounded-xl min-h-28 border-2 border-mahjong-blue-400/30">
                     {renderDiscardHistory(playerDiscards)}
                   </div>
                 </section>
-                <section className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
+                <section className="bg-black/20  rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
                   <h2 className="mb-4 font-japanese font-bold text-2xl text-mahjong-red-300">CPUの捨て牌</h2>
                   <div className="bg-mahjong-red-500/20 p-4 rounded-xl min-h-28 border-2 border-mahjong-red-400/30">
                     {renderDiscardHistory(cpuDiscards)}
@@ -434,7 +434,7 @@ export function GameBoard({
               </div>
 
               {/* プレイヤーの手牌 */}
-              <section className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
+              <section className="bg-black/20  rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="font-japanese font-bold text-2xl text-mahjong-blue-300">あなたの手牌</h2>
                   <DoraIndicator dora={dora} />
@@ -453,7 +453,7 @@ export function GameBoard({
               </section>
 
               {/* 選択可能な捨て牌 */}
-              <section className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
+              <section className="bg-black/20  rounded-2xl p-6 border-2 border-mahjong-gold-400/30">
                 <h2 className="mb-4 font-japanese font-bold text-2xl text-white">
                   捨て牌を選択してください（{poolTiles.length}枚）
                   {isProcessingWin ? <span className="text-mahjong-gold-300 ml-2 text-xl">（和了判定中...）</span> :
@@ -687,7 +687,7 @@ export function GameBoard({
                 {suggestions.length > 0 && suggestions[0].yakuAnalysis && suggestions[0].yakuAnalysis.length > 0 && (
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {suggestions[0].yakuAnalysis.map((yaku: any, yakuIndex: number) => (
-                      <div key={yakuIndex} className="bg-black/30 backdrop-blur-sm p-4 rounded-xl shadow-mahjong-tile border-2 border-mahjong-gold-400/30">
+                      <div key={yakuIndex} className="bg-black/30  p-4 rounded-xl shadow-mahjong-tile border-2 border-mahjong-gold-400/30">
                         <div className="mb-3">
                           <h3 className="text-xl font-japanese font-bold text-mahjong-gold-300">
                             {yakuIndex === 0 ? '①' : yakuIndex === 1 ? '②' : yakuIndex === 2 ? '③' : yakuIndex === 3 ? '④' : yakuIndex === 4 ? '⑤' : `${yakuIndex + 1}.`}{yaku.yakuName}

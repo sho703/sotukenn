@@ -6,6 +6,8 @@ import { MahjongTile } from '../mahjong-tile';
 import { Tile } from '../types';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import { HintPopup } from '@/app/components/ui/hint-popup';
+import Image from 'next/image';
 
 interface Props {
   tiles: Tile[];
@@ -55,7 +57,8 @@ function SortableMahjongTile({ tile, index }: { tile: Tile; index: number }) {
 }
 
 export function HandZone({ tiles = [], onTileDrop, onReorder }: Props) {
-  const [mode, setMode] = useState<'none' | 'normal' | 'seven-pairs'>('none');
+  const [mode, setMode] = useState<'none' | 'normal' | 'seven-pairs'>('normal');
+  const [isHintOpen, setIsHintOpen] = useState(false);
   const { setNodeRef } = useDroppable({
     id: 'hand',
   });
@@ -147,31 +150,44 @@ export function HandZone({ tiles = [], onTileDrop, onReorder }: Props) {
   return (
     <div className="space-y-4">
       {/* モード切り替えボタン */}
-      <div className="flex justify-center gap-2">
-        <Button
-          onClick={() => setMode('none')}
-          variant={mode === 'none' ? 'mahjong' : 'outline'}
-          className={mode === 'none' ? '' : 'text-gray-700 border-gray-300 hover:bg-gray-100'}
-          size="sm"
-        >
-          なし
-        </Button>
-        <Button
-          onClick={() => setMode('normal')}
-          variant={mode === 'normal' ? 'mahjong' : 'outline'}
-          className={mode === 'normal' ? '' : 'text-gray-700 border-gray-300 hover:bg-gray-100'}
-          size="sm"
-        >
-          アシスト
-        </Button>
-        <Button
-          onClick={() => setMode('seven-pairs')}
-          variant={mode === 'seven-pairs' ? 'mahjong' : 'outline'}
-          className={mode === 'seven-pairs' ? '' : 'text-gray-700 border-gray-300 hover:bg-gray-100'}
-          size="sm"
-        >
-          七対子
-        </Button>
+      <div className="flex justify-between items-center">
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setMode('none')}
+            variant={mode === 'none' ? 'mahjong' : 'outline'}
+            className={mode === 'none' ? '' : 'text-gray-700 border-gray-300 hover:bg-gray-100'}
+            size="sm"
+          >
+            なし
+          </Button>
+          <Button
+            onClick={() => setMode('normal')}
+            variant={mode === 'normal' ? 'mahjong' : 'outline'}
+            className={mode === 'normal' ? '' : 'text-gray-700 border-gray-300 hover:bg-gray-100'}
+            size="sm"
+          >
+            アシスト
+          </Button>
+          <Button
+            onClick={() => setMode('seven-pairs')}
+            variant={mode === 'seven-pairs' ? 'mahjong' : 'outline'}
+            className={mode === 'seven-pairs' ? '' : 'text-gray-700 border-gray-300 hover:bg-gray-100'}
+            size="sm"
+          >
+            七対子
+          </Button>
+        </div>
+        {/* ヒントボタン（アシストモードの時のみ表示） */}
+        {(mode === 'normal' || mode === 'seven-pairs') && (
+          <Button
+            onClick={() => setIsHintOpen(true)}
+            variant="outline"
+            className="text-blue-600 border-blue-300 hover:bg-blue-50"
+            size="sm"
+          >
+            💡 ヒント
+          </Button>
+        )}
       </div>
 
       {/* 手牌表示エリア */}
@@ -242,6 +258,322 @@ export function HandZone({ tiles = [], onTileDrop, onReorder }: Props) {
           )}
         </SortableContext>
       </div>
+
+      {/* ヒントポップアップ */}
+      <HintPopup
+        isOpen={isHintOpen}
+        onClose={() => setIsHintOpen(false)}
+        title={mode === 'seven-pairs' ? "🀄 七対子のヒント" : "🀄 手牌選択のヒント"}
+      >
+        {mode === 'seven-pairs' ? (
+          // 七対子モードのヒント
+          <div className="space-y-6">
+            <div className="bg-blue-50 rounded-xl p-4 border-2 border-blue-200">
+              <h3 className="text-xl sm:text-2xl font-bold text-blue-800 mb-3">
+                📋 七対子の基本ルール
+              </h3>
+              <p className="text-lg sm:text-xl leading-relaxed text-gray-700">
+                <span className="font-bold text-blue-600">13枚の手牌</span>で同じ牌2枚を6組と単独の牌1枚を作ります：
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="flex items-start gap-4">
+                <div className="bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-lg">
+                  1
+                </div>
+                <div className="flex-1">
+                  <p className="text-xl sm:text-2xl font-bold text-gray-800 mb-3">
+                    同じ牌2枚を <span className="text-green-600">6組</span>
+                  </p>
+                  <div className="flex gap-3">
+                    <div className="relative w-14 h-18">
+                      <Image src="/images/tiles/1man.gif" alt="1万" fill sizes="56px" className="object-contain" />
+                    </div>
+                    <div className="relative w-14 h-18">
+                      <Image src="/images/tiles/1man.gif" alt="1万" fill sizes="56px" className="object-contain" />
+                    </div>
+                    <span className="text-lg font-bold text-gray-600 flex items-center">や</span>
+                    <div className="relative w-14 h-18">
+                      <Image src="/images/tiles/3pin.gif" alt="3筒" fill sizes="56px" className="object-contain" />
+                    </div>
+                    <div className="relative w-14 h-18">
+                      <Image src="/images/tiles/3pin.gif" alt="3筒" fill sizes="56px" className="object-contain" />
+                    </div>
+                    <span className="text-lg font-bold text-gray-600 flex items-center">や</span>
+                    <div className="relative w-14 h-18">
+                      <Image src="/images/tiles/5sou.gif" alt="5索" fill sizes="56px" className="object-contain" />
+                    </div>
+                    <div className="relative w-14 h-18">
+                      <Image src="/images/tiles/5sou.gif" alt="5索" fill sizes="56px" className="object-contain" />
+                    </div>
+                  </div>
+                  <p className="text-base text-gray-600 mt-2">
+                    💡 同じ牌が2枚ずつ6種類必要です！
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-lg">
+                  2
+                </div>
+                <div className="flex-1">
+                  <p className="text-xl sm:text-2xl font-bold text-gray-800 mb-3">
+                    単独の牌を <span className="text-red-600">1枚</span>
+                  </p>
+                  <div className="flex gap-3">
+                    <div className="relative w-14 h-18">
+                      <Image src="/images/tiles/chun.gif" alt="中" fill sizes="56px" className="object-contain border-2 border-green-500" />
+                    </div>
+                  </div>
+                  <p className="text-base text-gray-600 mt-2">
+                    💡 この牌が出れば上がりです！
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-orange-50 rounded-xl p-4 border-2 border-orange-200">
+              <h4 className="text-lg sm:text-xl font-bold text-orange-800 mb-3">
+                🎯 戦略のヒント
+              </h4>
+              <p className="text-base sm:text-lg text-gray-700 mb-3">
+                <span className="font-bold text-orange-600">同じ牌は4枚しかない</span>ため、<br />
+                自分が1枚しか持っていない牌を最後の1枚として選ぶと有利です！
+              </p>
+              <div className="bg-white rounded-lg p-3 border border-orange-300">
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <span>💡 例：自分が</span>
+                    <div className="relative w-10 h-14">
+                      <Image src="/images/tiles/1man.gif" alt="1万" fill sizes="40px" className="object-contain" />
+                    </div>
+                    <span>を<span className="font-bold text-orange-600">1枚だけ</span>持っている場合</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="relative w-10 h-14">
+                      <Image src="/images/tiles/1man.gif" alt="1万" fill sizes="40px" className="object-contain" />
+                    </div>
+                    <span>を単独牌にすると、相手が捨てる確率が高くなり、上がりやすくなります</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 rounded-xl p-4 border-2 border-gray-200">
+              <p className="text-base sm:text-lg text-gray-600">
+                💡 七対子アシスト表示の区切り線に従って、この形になるように牌を選んでください
+              </p>
+            </div>
+          </div>
+        ) : (
+          // 通常モードのヒント
+          <div className="space-y-6">
+            <div className="bg-blue-50 rounded-xl p-4 border-2 border-blue-200">
+              <h3 className="text-xl sm:text-2xl font-bold text-blue-800 mb-3">
+                📋 このゲームの基本ルール
+              </h3>
+              <p className="text-lg sm:text-xl leading-relaxed text-gray-700">
+                <span className="font-bold text-blue-600">13枚の手牌</span>で以下の組み合わせを作ります：
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="flex items-start gap-4">
+                <div className="bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-lg">
+                  1
+                </div>
+                <div className="flex-1">
+                  <p className="text-xl sm:text-2xl font-bold text-gray-800 mb-3">
+                    3枚セットを <span className="text-green-600">3組</span>
+                  </p>
+                  <div className="flex gap-3">
+                    <div className="relative w-14 h-18">
+                      <Image src="/images/tiles/1man.gif" alt="1万" fill sizes="56px" className="object-contain" />
+                    </div>
+                    <div className="relative w-14 h-18">
+                      <Image src="/images/tiles/2man.gif" alt="2万" fill sizes="56px" className="object-contain" />
+                    </div>
+                    <div className="relative w-14 h-18">
+                      <Image src="/images/tiles/3man.gif" alt="3万" fill sizes="56px" className="object-contain" />
+                    </div>
+                    <div className="relative w-14 h-18">
+                      <Image src="/images/tiles/4pin.gif" alt="4筒" fill sizes="56px" className="object-contain" />
+                    </div>
+                    <div className="relative w-14 h-18">
+                      <Image src="/images/tiles/5pin.gif" alt="5筒" fill sizes="56px" className="object-contain" />
+                    </div>
+                    <div className="relative w-14 h-18">
+                      <Image src="/images/tiles/6pin.gif" alt="6筒" fill sizes="56px" className="object-contain" />
+                    </div>
+                    <div className="relative w-14 h-18">
+                      <Image src="/images/tiles/9sou.gif" alt="9索" fill sizes="56px" className="object-contain" />
+                    </div>
+                    <div className="relative w-14 h-18">
+                      <Image src="/images/tiles/9sou.gif" alt="9索" fill sizes="56px" className="object-contain" />
+                    </div>
+                    <div className="relative w-14 h-18">
+                      <Image src="/images/tiles/9sou.gif" alt="9索" fill sizes="56px" className="object-contain" />
+                    </div>
+                  </div>
+                  <p className="text-base text-gray-600 mt-2">
+                    💡 連続する牌（1-2-3）や同じ牌（9-9-9）どちらでもOK！
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-lg">
+                  2
+                </div>
+                <div className="flex-1">
+                  <p className="text-xl sm:text-2xl font-bold text-gray-800 mb-3">
+                    同じ牌2枚を <span className="text-red-600">1組</span>
+                  </p>
+                  <div className="flex gap-3">
+                    <div className="relative w-14 h-18">
+                      <Image src="/images/tiles/nan.gif" alt="南" fill sizes="56px" className="object-contain" />
+                    </div>
+                    <div className="relative w-14 h-18">
+                      <Image src="/images/tiles/nan.gif" alt="南" fill sizes="56px" className="object-contain" />
+                    </div>
+                    <span className="text-lg font-bold text-gray-600 flex items-center">や</span>
+                    <div className="relative w-14 h-18">
+                      <Image src="/images/tiles/8sou.gif" alt="8索" fill sizes="56px" className="object-contain" />
+                    </div>
+                    <div className="relative w-14 h-18">
+                      <Image src="/images/tiles/8sou.gif" alt="8索" fill sizes="56px" className="object-contain" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="bg-orange-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-lg">
+                  3
+                </div>
+                <div className="flex-1">
+                  <p className="text-xl sm:text-2xl font-bold text-gray-800 mb-3">
+                    2枚で待ち牌を作る組み合わせを <span className="text-orange-600">1組</span>
+                  </p>
+
+                  {/* 両面待ちの例 */}
+                  <div className="mb-4">
+                    <p className="text-lg font-bold text-gray-700 mb-2">
+                      真ん中で2種類待ちの例：<span className="text-green-600 font-bold">（最も有利！2枚待ち）</span>
+                    </p>
+                    <div className="flex gap-3 mb-2">
+                      <div className="relative w-14 h-18">
+                        <Image src="/images/tiles/3pin.gif" alt="3筒" fill sizes="56px" className="object-contain" />
+                      </div>
+                      <div className="relative w-14 h-18">
+                        <Image src="/images/tiles/4pin.gif" alt="4筒" fill sizes="56px" className="object-contain" />
+                      </div>
+                      <span className="text-lg font-bold text-gray-600 flex items-center">→</span>
+                      <div className="relative w-14 h-18">
+                        <Image src="/images/tiles/2pin.gif" alt="2筒待ち" fill sizes="56px" className="object-contain border-2 border-green-500" />
+                      </div>
+                      <span className="text-lg font-bold text-gray-600 flex items-center">または</span>
+                      <div className="relative w-14 h-18">
+                        <Image src="/images/tiles/5pin.gif" alt="5筒待ち" fill sizes="56px" className="object-contain border-2 border-green-500" />
+                      </div>
+                    </div>
+                    <p className="text-base text-green-600 font-bold">
+                      💡 2種類の牌で上がれるので、最も待ちやすい！
+                    </p>
+                  </div>
+
+                  {/* カンチャン待ちの例 */}
+                  <div className="mb-4">
+                    <p className="text-lg font-bold text-gray-700 mb-2">
+                      間で1種類待ちの例：<span className="text-yellow-600 font-bold">（1枚待ち）</span>
+                    </p>
+                    <div className="flex gap-3 mb-2">
+                      <div className="relative w-14 h-18">
+                        <Image src="/images/tiles/1man.gif" alt="1万" fill sizes="56px" className="object-contain" />
+                      </div>
+                      <div className="relative w-14 h-18">
+                        <Image src="/images/tiles/3man.gif" alt="3万" fill sizes="56px" className="object-contain" />
+                      </div>
+                      <span className="text-lg font-bold text-gray-600 flex items-center">→</span>
+                      <div className="relative w-14 h-18">
+                        <Image src="/images/tiles/2man.gif" alt="2万待ち" fill sizes="56px" className="object-contain border-2 border-green-500" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ペンチャン待ちの例 */}
+                  <div className="mb-4">
+                    <p className="text-lg font-bold text-gray-700 mb-2">
+                      端で1種類待ちの例：<span className="text-red-600 font-bold">（1枚待ち）</span>
+                    </p>
+                    <div className="flex gap-3 mb-2">
+                      <div className="relative w-14 h-18">
+                        <Image src="/images/tiles/8sou.gif" alt="8索" fill sizes="56px" className="object-contain" />
+                      </div>
+                      <div className="relative w-14 h-18">
+                        <Image src="/images/tiles/9sou.gif" alt="9索" fill sizes="56px" className="object-contain" />
+                      </div>
+                      <span className="text-lg font-bold text-gray-600 flex items-center">→</span>
+                      <div className="relative w-14 h-18">
+                        <Image src="/images/tiles/7sou.gif" alt="7索待ち" fill sizes="56px" className="object-contain border-2 border-green-500" />
+                      </div>
+                    </div>
+                    <div className="flex gap-3 mb-2">
+                      <div className="relative w-14 h-18">
+                        <Image src="/images/tiles/1man.gif" alt="1万" fill sizes="56px" className="object-contain" />
+                      </div>
+                      <div className="relative w-14 h-18">
+                        <Image src="/images/tiles/2man.gif" alt="2万" fill sizes="56px" className="object-contain" />
+                      </div>
+                      <span className="text-lg font-bold text-gray-600 flex items-center">→</span>
+                      <div className="relative w-14 h-18">
+                        <Image src="/images/tiles/3man.gif" alt="3万待ち" fill sizes="56px" className="object-contain border-2 border-green-500" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-yellow-50 rounded-xl p-4 border-2 border-yellow-200">
+              <p className="text-xl sm:text-2xl leading-relaxed text-gray-700 mb-4">
+                <span className="font-bold text-yellow-700">上がり方：</span>
+                ③で作った2枚が①のような3枚セットになる牌を相手が出せば上がりです！
+              </p>
+              <div className="flex gap-3 items-center justify-center">
+                <div className="relative w-14 h-18">
+                  <Image src="/images/tiles/3pin.gif" alt="3筒" fill sizes="56px" className="object-contain" />
+                </div>
+                <div className="relative w-14 h-18">
+                  <Image src="/images/tiles/4pin.gif" alt="4筒" fill sizes="56px" className="object-contain" />
+                </div>
+                <span className="text-lg font-bold text-gray-600 mx-2">+</span>
+                <div className="relative w-14 h-18">
+                  <Image src="/images/tiles/2pin.gif" alt="2筒" fill sizes="56px" className="object-contain border-2 border-green-500" />
+                </div>
+                <span className="text-lg font-bold text-gray-600 mx-2">=</span>
+                <div className="relative w-14 h-18">
+                  <Image src="/images/tiles/2pin.gif" alt="2筒" fill sizes="56px" className="object-contain" />
+                </div>
+                <div className="relative w-14 h-18">
+                  <Image src="/images/tiles/3pin.gif" alt="3筒" fill sizes="56px" className="object-contain" />
+                </div>
+                <div className="relative w-14 h-18">
+                  <Image src="/images/tiles/4pin.gif" alt="4筒" fill sizes="56px" className="object-contain" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 rounded-xl p-4 border-2 border-gray-200">
+              <p className="text-base sm:text-lg text-gray-600">
+                💡 アシスト表示の区切り線に従って、この形になるように牌を選んでください
+              </p>
+            </div>
+          </div>
+        )}
+      </HintPopup>
     </div>
   );
 }
