@@ -51,15 +51,16 @@ function countTilesByType(tiles: string[]): { man: number, pin: number, sou: num
 }
 
 // 役を自動検出する関数
-function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any): { yakuName: string, possibility: string, description: string }[] {
-  const yakuList: { yakuName: string, possibility: string, description: string }[] = [];
+function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any): { yakuName: string, possibility: string, description: string, han?: number }[] {
+  const yakuList: { yakuName: string, possibility: string, description: string, han?: number }[] = [];
 
   // 七対子: 対子6個以上
   if (possibleMelds.pairs.length >= 6) {
     yakuList.push({
       yakuName: "七対子",
       possibility: "高い",
-      description: `対子が${possibleMelds.pairs.length}個あるため、七対子を狙えます。七対子は2翻の役で、7つの対子で手牌を完成させる特殊な形です。`
+      description: `対子が${possibleMelds.pairs.length}個あるため、七対子を狙えます。七対子は2翻の役で、7つの対子で手牌を完成させる特殊な形です。`,
+      han: 2
     });
   }
 
@@ -88,7 +89,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     yakuList.push({
       yakuName: "国士無双",
       possibility: "高い",
-      description: `19字牌のうち${kokushiTypes}種類が利用可能で、2枚以上ある牌もあるため、国士無双を狙えます。国士無双は13翻の役満で、19字牌を1つずつ揃える特殊な形です。`
+      description: `19字牌のうち${kokushiTypes}種類が利用可能で、2枚以上ある牌もあるため、国士無双を狙えます。国士無双は13翻の役満で、19字牌を1つずつ揃える特殊な形です。`,
+      han: 13
     });
   }
 
@@ -97,7 +99,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     yakuList.push({
       yakuName: "四暗刻",
       possibility: "高い",
-      description: `刻子が${possibleMelds.triplets.length}個あるため、四暗刻を狙えます。四暗刻は13翻の役満で、4つの刻子を暗刻で作る役です。`
+      description: `刻子が${possibleMelds.triplets.length}個あるため、四暗刻を狙えます。四暗刻は13翻の役満で、4つの刻子を暗刻で作る役です。`,
+      han: 13
     });
   }
 
@@ -106,7 +109,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     yakuList.push({
       yakuName: "三暗刻",
       possibility: "中程度",
-      description: `刻子が${possibleMelds.triplets.length}個あるため、三暗刻を狙えます。三暗刻は2翻の役で、3つの刻子を暗刻で作る役です。`
+      description: `刻子が${possibleMelds.triplets.length}個あるため、三暗刻を狙えます。三暗刻は2翻の役で、3つの刻子を暗刻で作る役です。`,
+      han: 2
     });
   }
 
@@ -115,21 +119,24 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     yakuList.push({
       yakuName: "清一色（萬子）",
       possibility: "高い",
-      description: `萬子が${tileCounts.man}枚あるため、萬子の清一色を狙えます。清一色は6翻の高得点役で、同じ色の牌だけで手牌を作る役です。`
+      description: `萬子が${tileCounts.man}枚あるため、萬子の清一色を狙えます。清一色は6翻の高得点役で、同じ色の牌だけで手牌を作る役です。`,
+      han: 6
     });
   }
   if (tileCounts.pin >= 13) {
     yakuList.push({
       yakuName: "清一色（筒子）",
       possibility: "高い",
-      description: `筒子が${tileCounts.pin}枚あるため、筒子の清一色を狙えます。清一色は6翻の高得点役で、同じ色の牌だけで手牌を作る役です。`
+      description: `筒子が${tileCounts.pin}枚あるため、筒子の清一色を狙えます。清一色は6翻の高得点役で、同じ色の牌だけで手牌を作る役です。`,
+      han: 6
     });
   }
   if (tileCounts.sou >= 13) {
     yakuList.push({
       yakuName: "清一色（索子）",
       possibility: "高い",
-      description: `索子が${tileCounts.sou}枚あるため、索子の清一色を狙えます。清一色は6翻の高得点役で、同じ色の牌だけで手牌を作る役です。`
+      description: `索子が${tileCounts.sou}枚あるため、索子の清一色を狙えます。清一色は6翻の高得点役で、同じ色の牌だけで手牌を作る役です。`,
+      han: 6
     });
   }
 
@@ -145,6 +152,19 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
   const honitsuSuitNames: { [key: string]: string } = { 'm': '萬子', 'p': '筒子', 's': '索子' };
 
   honitsuSuits.forEach(suit => {
+    // 事前チェック: その色の数牌の枚数を取得
+    const suitCount = suit === 'm' ? tileCounts.man : suit === 'p' ? tileCounts.pin : tileCounts.sou;
+
+    // 2枚以上ある字牌の合計枚数を計算
+    const honorPairsCount = (Object.values(tileCounts.honorDetails) as number[]).reduce((sum, count) => {
+      return sum + (count >= 2 ? count : 0);
+    }, 0);
+
+    // 数牌 + 2枚以上ある字牌の合計が14枚未満なら検出しない
+    if (suitCount + honorPairsCount < 14) {
+      return;
+    }
+
     // その色の数牌と字牌で構成される順子・刻子・対子を厳密にチェック
     const suitSequences = sequences.filter((seq: string[]) => {
       return seq.every(tile => tile.endsWith(suit) || !tile.match(/[0-9]/));
@@ -167,13 +187,15 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
       yakuList.push({
         yakuName: `混一色（${honitsuSuitNames[suit]}）`,
         possibility: "高い",
-        description: `${honitsuSuitNames[suit]}と字牌で面子${totalMelds}個（順子${suitSequences.length}個、刻子${suitTriplets.length}個）と対子${totalPairs}個があるため、混一色を狙えます。混一色は3翻の役です。`
+        description: `${honitsuSuitNames[suit]}と字牌で面子${totalMelds}個（順子${suitSequences.length}個、刻子${suitTriplets.length}個）と対子${totalPairs}個があるため、混一色を狙えます。混一色は3翻の役です。`,
+        han: 3
       });
     } else if (totalMelds >= 3 && totalPairs >= 1) {
       yakuList.push({
         yakuName: `混一色（${honitsuSuitNames[suit]}）`,
         possibility: "中程度",
-        description: `${honitsuSuitNames[suit]}と字牌で面子${totalMelds}個（順子${suitSequences.length}個、刻子${suitTriplets.length}個）と対子${totalPairs}個があるため、混一色の可能性があります。混一色は3翻の役です。`
+        description: `${honitsuSuitNames[suit]}と字牌で面子${totalMelds}個（順子${suitSequences.length}個、刻子${suitTriplets.length}個）と対子${totalPairs}個があるため、混一色の可能性があります。混一色は3翻の役です。`,
+        han: 3
       });
     }
   });
@@ -183,7 +205,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     yakuList.push({
       yakuName: "字一色",
       possibility: "高い",
-      description: `字牌が${tileCounts.honor}枚のみのため、字一色を狙えます。字一色は13翻の役満で、字牌のみで手牌を作る役です。`
+      description: `字牌が${tileCounts.honor}枚のみのため、字一色を狙えます。字一色は13翻の役満で、字牌のみで手牌を作る役です。`,
+      han: 13
     });
   }
 
@@ -193,7 +216,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     yakuList.push({
       yakuName: "大三元",
       possibility: "中程度",
-      description: `三元牌が${sangenCount}枚あるため、大三元を狙えます。大三元は13翻の役満で、白・發・中をすべて刻子にする役です。`
+      description: `三元牌が${sangenCount}枚あるため、大三元を狙えます。大三元は13翻の役満で、白・發・中をすべて刻子にする役です。`,
+      han: 13
     });
   }
 
@@ -203,7 +227,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     yakuList.push({
       yakuName: "小四喜",
       possibility: "中程度",
-      description: `風牌が${windCount}枚あるため、小四喜を狙えます。小四喜は13翻の役満で、風牌3種類を刻子、1種類を雀頭にする役です。`
+      description: `風牌が${windCount}枚あるため、小四喜を狙えます。小四喜は13翻の役満で、風牌3種類を刻子、1種類を雀頭にする役です。`,
+      han: 13
     });
   }
 
@@ -212,7 +237,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     yakuList.push({
       yakuName: "大四喜",
       possibility: "高い",
-      description: `風牌が${windCount}枚あるため、大四喜を狙えます。大四喜は13翻の役満で、風牌4種類すべてを刻子にする役です。`
+      description: `風牌が${windCount}枚あるため、大四喜を狙えます。大四喜は13翻の役満で、風牌4種類すべてを刻子にする役です。`,
+      han: 13
     });
   }
 
@@ -221,7 +247,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     yakuList.push({
       yakuName: "小三元",
       possibility: "中程度",
-      description: `三元牌が${sangenCount}枚あるため、小三元を狙えます。小三元は2翻の役で、三元牌2種類を刻子、1種類を雀頭にする役です。`
+      description: `三元牌が${sangenCount}枚あるため、小三元を狙えます。小三元は2翻の役で、三元牌2種類を刻子、1種類を雀頭にする役です。`,
+      han: 2
     });
   }
 
@@ -230,7 +257,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     yakuList.push({
       yakuName: "対々和",
       possibility: "中程度",
-      description: `刻子${possibleMelds.triplets.length}個と対子${possibleMelds.pairs.length}個あるため、対々和を狙えます。対々和は2翻の役で、刻子3つ+対子1つで手牌を作る役です。`
+      description: `刻子${possibleMelds.triplets.length}個と対子${possibleMelds.pairs.length}個あるため、対々和を狙えます。対々和は2翻の役で、刻子3つ+対子1つで手牌を作る役です。`,
+      han: 2
     });
   }
 
@@ -252,7 +280,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
       yakuList.push({
         yakuName: `一気通貫（${suitNames[suit]}）`,
         possibility: "高い",
-        description: `${suitNames[suit]}で123, 456, 789の順子が揃っているため、一気通貫を狙えます。一気通貫は2翻の役で、同色で1-9の連続する順子を作る役です。`
+        description: `${suitNames[suit]}で123, 456, 789の順子が揃っているため、一気通貫を狙えます。一気通貫は2翻の役で、同色で1-9の連続する順子を作る役です。`,
+        han: 2
       });
     } else {
       const missingSequences = [];
@@ -265,13 +294,15 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
         yakuList.push({
           yakuName: `一気通貫（${suitNames[suit]}）`,
           possibility: "中程度",
-          description: `${suitNames[suit]}で${completedCount}組の順子が揃っており、残り${missingSequences.join('、')}の順子で一気通貫を狙えます。一気通貫は2翻の役です。`
+          description: `${suitNames[suit]}で${completedCount}組の順子が揃っており、残り${missingSequences.join('、')}の順子で一気通貫を狙えます。一気通貫は2翻の役です。`,
+          han: 2
         });
       } else if (completedCount >= 1) {
         yakuList.push({
           yakuName: `一気通貫（${suitNames[suit]}）`,
           possibility: "低い",
-          description: `${suitNames[suit]}で${completedCount}組の順子が揃っており、残り${missingSequences.join('、')}の順子で一気通貫を狙えます。一気通貫は2翻の役です。`
+          description: `${suitNames[suit]}で${completedCount}組の順子が揃っており、残り${missingSequences.join('、')}の順子で一気通貫を狙えます。一気通貫は2翻の役です。`,
+          han: 2
         });
       }
     }
@@ -301,7 +332,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
       yakuList.push({
         yakuName: "三色同順",
         possibility: "高い",
-        description: `${number}の順子が萬子・筒子・索子の${uniqueSuits.length}色で揃っているため、三色同順を狙えます。三色同順は2翻の役で、萬子・筒子・索子で同じ数字の順子を作る役です。`
+        description: `${number}の順子が萬子・筒子・索子の${uniqueSuits.length}色で揃っているため、三色同順を狙えます。三色同順は2翻の役で、萬子・筒子・索子で同じ数字の順子を作る役です。`,
+        han: 2
       });
     }
     // 2色以下は検出しない（厳密化）
@@ -331,7 +363,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
       yakuList.push({
         yakuName: "三色同刻",
         possibility: "高い",
-        description: `${number}の刻子が萬子・筒子・索子の${uniqueSuits.length}色で揃っているため、三色同刻を狙えます。三色同刻は2翻の役で、萬子・筒子・索子で同じ数字の刻子を作る役です。`
+        description: `${number}の刻子が萬子・筒子・索子の${uniqueSuits.length}色で揃っているため、三色同刻を狙えます。三色同刻は2翻の役で、萬子・筒子・索子で同じ数字の刻子を作る役です。`,
+        han: 2
       });
     }
     // 2色以下は検出しない（厳密化）
@@ -343,14 +376,27 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
   // 利用可能な牌から順子の組み合わせを詳細にチェック
   const suits = ['m', 'p', 's'];
   suits.forEach(suit => {
-    const suitTiles = tiles.filter(tile => tile.endsWith(suit)).sort();
-    const numbers = suitTiles.map(tile => parseInt(tile[0]));
+    const suitTiles = tiles.filter(tile => tile.endsWith(suit));
 
-    // 連続する3枚の順子を探す
+    // 各数字の枚数をカウント
+    const numberCounts: { [key: number]: number } = {};
+    suitTiles.forEach(tile => {
+      const num = parseInt(tile[0]);
+      numberCounts[num] = (numberCounts[num] || 0) + 1;
+    });
+
+    // 連続する3枚の順子を探し、実際に作れる組数をカウント
     for (let i = 1; i <= 7; i++) {
-      if (numbers.includes(i) && numbers.includes(i + 1) && numbers.includes(i + 2)) {
+      const count1 = numberCounts[i] || 0;
+      const count2 = numberCounts[i + 1] || 0;
+      const count3 = numberCounts[i + 2] || 0;
+
+      // この順子を何組作れるか（最小値が組数）
+      const possibleSets = Math.min(count1, count2, count3);
+
+      if (possibleSets >= 1) {
         const sequenceKey = `${i}${suit},${i + 1}${suit},${i + 2}${suit}`;
-        sequenceCounts[sequenceKey] = (sequenceCounts[sequenceKey] || 0) + 1;
+        sequenceCounts[sequenceKey] = possibleSets;
       }
     }
   });
@@ -362,16 +408,18 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     yakuList.push({
       yakuName: "一盃口",
       possibility: "中程度",
-      description: `同じ順子が${duplicateSequences.length}組（${duplicateSequences[0][0]}など）あるため、一盃口を狙えます。一盃口は1翻の役で、同じ順子を2つ作る役です。`
+      description: `同じ順子が${duplicateSequences.length}組（${duplicateSequences[0][0]}など）あるため、一盃口を狙えます。一盃口は1翻の役で、同じ順子を2つ作る役です。`,
+      han: 1
     });
   }
 
-  // 二盃口: 同じ順子の組み合わせが2つ
+  // 二盃口: 同じ順子の組み合わせが2種類以上、それぞれ2組ずつ
   if (duplicateSequences.length >= 2) {
     yakuList.push({
       yakuName: "二盃口",
       possibility: "中程度",
-      description: `同じ順子が${duplicateSequences.length}組あるため、二盃口を狙えます。二盃口は3翻の役で、同じ順子の組み合わせを2つ作る役です。`
+      description: `同じ順子が${duplicateSequences.length}種類、それぞれ2組ずつあるため、二盃口を狙えます。二盃口は3翻の役で、同じ順子の組み合わせを2種類×2組作る役です。`,
+      han: 3
     });
   }
 
@@ -417,19 +465,22 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
       yakuList.push({
         yakuName: "タンヤオ",
         possibility: "高い",
-        description: `2-8の数牌の順子${tanyaoSequences.length}個と対子${tanyaoPairs.length}個があるため、タンヤオを狙えます。タンヤオは1翻の役で、2-8の数牌のみで手牌を作る役です。`
+        description: `2-8の数牌の順子${tanyaoSequences.length}個と対子${tanyaoPairs.length}個があるため、タンヤオを狙えます。タンヤオは1翻の役で、2-8の数牌のみで手牌を作る役です。`,
+        han: 1
       });
     } else if (tanyaoSequences.length >= 2 && tanyaoPairs.length >= 1 && tanyaoTriplets.length >= 1) {
       yakuList.push({
         yakuName: "タンヤオ",
         possibility: "中程度",
-        description: `2-8の数牌の順子${tanyaoSequences.length}個、刻子${tanyaoTriplets.length}個、対子${tanyaoPairs.length}個があるため、タンヤオの可能性があります。タンヤオは1翻の役です。`
+        description: `2-8の数牌の順子${tanyaoSequences.length}個、刻子${tanyaoTriplets.length}個、対子${tanyaoPairs.length}個があるため、タンヤオの可能性があります。タンヤオは1翻の役です。`,
+        han: 1
       });
     } else if (tanyaoSequences.length >= 1 && tanyaoPairs.length >= 1 && tanyaoTriplets.length >= 2) {
       yakuList.push({
         yakuName: "タンヤオ",
         possibility: "中程度",
-        description: `2-8の数牌の順子${tanyaoSequences.length}個、刻子${tanyaoTriplets.length}個、対子${tanyaoPairs.length}個があるため、タンヤオの可能性があります。タンヤオは1翻の役です。`
+        description: `2-8の数牌の順子${tanyaoSequences.length}個、刻子${tanyaoTriplets.length}個、対子${tanyaoPairs.length}個があるため、タンヤオの可能性があります。タンヤオは1翻の役です。`,
+        han: 1
       });
     }
   }
@@ -471,7 +522,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
         yakuList.push({
           yakuName: "平和",
           possibility: "中程度",
-          description: `順子${sequences.length}個、対子${pairs.length}個があり、両面待ちの塔子もあるため、平和を狙えます。平和は1翻の役で、3つの順子+1つの対子で構成し、両面待ちで上がる役です。`
+          description: `順子${sequences.length}個、対子${pairs.length}個があり、両面待ちの塔子もあるため、平和を狙えます。平和は1翻の役で、3つの順子+1つの対子で構成し、両面待ちで上がる役です。`,
+          han: 1
         });
       }
     }
@@ -519,7 +571,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
       yakuList.push({
         yakuName: "純全帯么九",
         possibility: "高い",
-        description: `1・9を含む順子${junchanSequences.length}個があるため、純全帯么九を狙えます。純全帯么九は2翻の役で、すべての面子と雀頭に1・9の牌が含まれる役です。`
+        description: `1・9を含む順子${junchanSequences.length}個があるため、純全帯么九を狙えます。純全帯么九は2翻の役で、すべての面子と雀頭に1・9の牌が含まれる役です。`,
+        han: 3
       });
     } else if (junchanSequences.length >= 3) {
       // 1・9を含む順子が3個の場合、1・9の刻子または対子が十分にある場合のみ「中程度」で検出
@@ -531,7 +584,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
         yakuList.push({
           yakuName: "純全帯么九",
           possibility: "中程度",
-          description: `1・9を含む面子${totalMelds}個（順子${junchanSequences.length}個、刻子${junchanTriplets.length}個）と1・9の対子${totalPairs}個があるため、純全帯么九の可能性があります。純全帯么九は2翻の役です。`
+          description: `1・9を含む面子${totalMelds}個（順子${junchanSequences.length}個、刻子${junchanTriplets.length}個）と1・9の対子${totalPairs}個があるため、純全帯么九の可能性があります。純全帯么九は2翻の役です。`,
+          han: 3
         });
       }
       // 条件を満たさない場合は検出しない
@@ -585,7 +639,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
       yakuList.push({
         yakuName: "混全帯么九",
         possibility: "高い",
-        description: `1・9を含む順子${honchanSequences.length}個があるため、混全帯么九を狙えます。混全帯么九は2翻の役で、すべての面子と雀頭に1・9の牌が含まれる役です。`
+        description: `1・9を含む順子${honchanSequences.length}個があるため、混全帯么九を狙えます。混全帯么九は2翻の役で、すべての面子と雀頭に1・9の牌が含まれる役です。`,
+        han: 2
       });
     } else if (honchanSequences.length >= 3) {
       // 1・9を含む順子が3個の場合、1・9の刻子または対子が十分にある場合のみ「中程度」で検出
@@ -597,7 +652,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
         yakuList.push({
           yakuName: "混全帯么九",
           possibility: "中程度",
-          description: `1・9を含む面子${totalMelds}個（順子${honchanSequences.length}個、刻子${honchanTriplets.length}個）と1・9の数牌か字牌の対子${totalPairs}個があるため、混全帯么九の可能性があります。混全帯么九は2翻の役です。`
+          description: `1・9を含む面子${totalMelds}個（順子${honchanSequences.length}個、刻子${honchanTriplets.length}個）と1・9の数牌か字牌の対子${totalPairs}個があるため、混全帯么九の可能性があります。混全帯么九は2翻の役です。`,
+          han: 2
         });
       }
       // 条件を満たさない場合は検出しない
@@ -628,7 +684,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
         yakuList.push({
           yakuName: "混老頭",
           possibility: "高い",
-          description: `1・9・字牌の刻子が${honroutouTriplets.length}個あるため、混老頭を狙えます。混老頭は2翻の役で、すべての面子と雀頭に1・9の牌か字牌が含まれる役です。`
+          description: `1・9・字牌の刻子が${honroutouTriplets.length}個あるため、混老頭を狙えます。混老頭は2翻の役で、すべての面子と雀頭に1・9の牌か字牌が含まれる役です。`,
+          han: 2
         });
       } else {
         // 刻子が3個の場合、刻子で使ったもの以外で1・9・字牌の対子を探す
@@ -657,7 +714,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
           yakuList.push({
             yakuName: "混老頭",
             possibility: "高い",
-            description: `1・9・字牌の刻子${honroutouTriplets.length}個と、刻子で使っていない1・9・字牌の対子${availablePairs.length}個があるため、混老頭を狙えます。混老頭は2翻の役です。`
+            description: `1・9・字牌の刻子${honroutouTriplets.length}個と、刻子で使っていない1・9・字牌の対子${availablePairs.length}個があるため、混老頭を狙えます。混老頭は2翻の役です。`,
+            han: 2
           });
         }
         // 対子が2個未満の場合は検出しない（可能性なし）
@@ -690,7 +748,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
         yakuList.push({
           yakuName: "清老頭",
           possibility: "高い",
-          description: `1・9の刻子が${chinroutouTriplets.length}個あるため、清老頭を狙えます。清老頭は役満で、すべての面子と雀頭に1・9の牌が含まれ、字牌を含まない役です。`
+          description: `1・9の刻子が${chinroutouTriplets.length}個あるため、清老頭を狙えます。清老頭は役満で、すべての面子と雀頭に1・9の牌が含まれ、字牌を含まない役です。`,
+          han: 13
         });
       } else {
         // 刻子が3個の場合、刻子で使ったもの以外で1・9の対子を探す
@@ -719,7 +778,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
           yakuList.push({
             yakuName: "清老頭",
             possibility: "高い",
-            description: `1・9の刻子${chinroutouTriplets.length}個と、刻子で使っていない1・9の対子${availablePairs.length}個があるため、清老頭を狙えます。清老頭は役満です。`
+            description: `1・9の刻子${chinroutouTriplets.length}個と、刻子で使っていない1・9の対子${availablePairs.length}個があるため、清老頭を狙えます。清老頭は役満です。`,
+            han: 13
           });
         }
         // 対子が2個未満の場合は検出しない（可能性なし）
@@ -739,19 +799,22 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     yakuList.push({
       yakuName: "緑一色",
       possibility: "高い",
-      description: `緑一色の牌のみで構成されているため、緑一色を狙えます。緑一色は役満で、2索、3索、4索、6索、8索、發のみで手牌を作る役です。`
+      description: `緑一色の牌のみで構成されているため、緑一色を狙えます。緑一色は役満で、2索、3索、4索、6索、8索、發のみで手牌を作る役です。`,
+      han: 13
     });
   } else if (nonGreenTiles.length <= 2 && greenTileCount >= 11) {
     yakuList.push({
       yakuName: "緑一色",
       possibility: "中程度",
-      description: `緑一色の牌が${greenTileCount}枚あり、非緑色の牌が${nonGreenTiles.length}枚のみのため、緑一色の可能性があります。緑一色は役満です。`
+      description: `緑一色の牌が${greenTileCount}枚あり、非緑色の牌が${nonGreenTiles.length}枚のみのため、緑一色の可能性があります。緑一色は役満です。`,
+      han: 13
     });
   } else if (nonGreenTiles.length <= 4 && greenTileCount >= 9) {
     yakuList.push({
       yakuName: "緑一色",
       possibility: "低い",
-      description: `緑一色の牌が${greenTileCount}枚あり、非緑色の牌が${nonGreenTiles.length}枚のため、緑一色の可能性があります。緑一色は役満です。`
+      description: `緑一色の牌が${greenTileCount}枚あり、非緑色の牌が${nonGreenTiles.length}枚のため、緑一色の可能性があります。緑一色は役満です。`,
+      han: 13
     });
   }
 
@@ -773,7 +836,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
       yakuList.push({
         yakuName: `九蓮宝燈（${chuurenSuitNames[suit]}）`,
         possibility: "高い",
-        description: `${chuurenSuitNames[suit]}で1112345678999の形が揃っているため、九蓮宝燈を狙えます。九蓮宝燈は役満で、同色で1112345678999の形で手牌を作る役です。`
+        description: `${chuurenSuitNames[suit]}で1112345678999の形が揃っているため、九蓮宝燈を狙えます。九蓮宝燈は役満で、同色で1112345678999の形で手牌を作る役です。`,
+        han: 13
       });
     } else {
       const missingTiles = [];
@@ -789,13 +853,15 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
         yakuList.push({
           yakuName: `九蓮宝燈（${chuurenSuitNames[suit]}）`,
           possibility: "中程度",
-          description: `${chuurenSuitNames[suit]}で九蓮宝燈の形が${completedCount}部分揃っており、残り${missingTiles.join('、')}で九蓮宝燈を狙えます。九蓮宝燈は役満です。`
+          description: `${chuurenSuitNames[suit]}で九蓮宝燈の形が${completedCount}部分揃っており、残り${missingTiles.join('、')}で九蓮宝燈を狙えます。九蓮宝燈は役満です。`,
+          han: 13
         });
       } else if (completedCount >= 1) {
         yakuList.push({
           yakuName: `九蓮宝燈（${chuurenSuitNames[suit]}）`,
           possibility: "低い",
-          description: `${chuurenSuitNames[suit]}で九蓮宝燈の形が${completedCount}部分揃っており、残り${missingTiles.join('、')}で九蓮宝燈を狙えます。九蓮宝燈は役満です。`
+          description: `${chuurenSuitNames[suit]}で九蓮宝燈の形が${completedCount}部分揃っており、残り${missingTiles.join('、')}で九蓮宝燈を狙えます。九蓮宝燈は役満です。`,
+          han: 13
         });
       }
     }
@@ -821,7 +887,8 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
         yakuList.push({
           yakuName: `純正九蓮宝燈（${chuurenSuitNames[suit]}）`,
           possibility: "高い",
-          description: `${chuurenSuitNames[suit]}で1112345678999の形が揃い、${onesCount >= 4 ? '1が4枚以上' : '9が4枚以上'}あるため、純正九蓮宝燈を狙えます。純正九蓮宝燈は役満で、九蓮宝燈の形で1か9が4枚以上ある役です。`
+          description: `${chuurenSuitNames[suit]}で1112345678999の形が揃い、${onesCount >= 4 ? '1が4枚以上' : '9が4枚以上'}あるため、純正九蓮宝燈を狙えます。純正九蓮宝燈は役満で、九蓮宝燈の形で1か9が4枚以上ある役です。`,
+          han: 13
         });
       }
     }
@@ -931,6 +998,7 @@ function generatePrompt(tiles: string[], handTiles: string[], detectedYaku: any[
 
 2. **特徴的なルール**:
    - 対局中は手牌13枚が固定、捨て牌は残りの21枚から選択
+   - **鳴き（ポン・チー）は考慮しなくて良い**
 
 3. **基本形について**:
    - **基本形**: 4面子1雀頭の形（順子・刻子の組み合わせ）
@@ -938,7 +1006,12 @@ function generatePrompt(tiles: string[], handTiles: string[], detectedYaku: any[
    - **刻子**: 同じ牌3枚（例：東東東）
    - **雀頭**: 同じ牌2枚（例：白白）
 
-4. **牌の表記**:
+4. **説明の注意事項**:
+   - このゲームは高齢の初心者向けです
+   - **専門用語をなるべく使わないでください**
+   - 例: 「面子」→「3枚セット」、「雀頭」→「2枚ペア」、「順子」→「連続する3枚」、「刻子」→「同じ牌3枚」
+
+5. **牌の表記**:
    - 萬子: 一萬〜九萬 (1m〜9m)
    - 筒子: 一筒〜九筒 (1p〜9p)
    - 索子: 一索〜九索 (1s〜9s)
@@ -998,11 +1071,11 @@ function generatePrompt(tiles: string[], handTiles: string[], detectedYaku: any[
 ${detectedYaku.map(yaku => `- ${yaku.yakuName}: ${yaku.description}`).join('\n')}
 
 【補完の指示】
-- 各役について、簡潔で分かりやすい説明を記述してください（1-2文程度）
-- 牌の表記は「1m,2m,3m」のような形式で記述してください
-- 役の矛盾した推奨は絶対にしないでください（例：タンヤオなのに789順子を推奨するなど）
-- 役の点数と基本的な戦略のみを記述してください
-
+各役について以下の形式で簡潔に説明してください：
+1. 一言説明（70文字以内、役の特徴を端的に）
+2. 実際に揃っている代表的な牌（最大6枚まで、牌コード形式）
+   - 例: ["1m", "2m", "3m", "4p", "5p", "6p"]
+   - 順子なら連続する3枚、刻子なら同じ牌3枚、対子なら同じ牌2枚
 
 【出力形式】
 以下のJSON形式で出力してください：
@@ -1012,16 +1085,16 @@ ${detectedYaku.map(yaku => `- ${yaku.yakuName}: ${yaku.description}`).join('\n')
   "yakuAnalysis": [
     {
       "yakuName": "検出された役名",
-      "possibility": "コードで決定された可能性（変更しないでください）",
-      "description": "補完された簡潔な説明"
+      "summary": "一言説明（70文字以内）",
+      "exampleTiles": ["1m", "2m", "3m", "4p", "5p", "6p"]
     }
   ]
 }
 \`\`\`
 
 【注意事項】
-- 簡潔で分かりやすい説明を心がけてください
-- 牌の表記は「1m,2m,3m」形式で記述してください
+- summaryは70文字以内で簡潔に
+- exampleTilesは実際に揃っている代表的な牌を最大6枚まで
 - 役の矛盾した推奨は絶対に避けてください`;
 
   // 特別指示は削除
@@ -1126,9 +1199,13 @@ export async function POST(req: Request) {
         const geminiResponse = parsedResponse.yakuAnalysis?.find((geminiYaku: any) =>
           geminiYaku.yakuName === yaku.yakuName
         );
+        const summary = geminiResponse?.summary || yaku.description;
         return {
           ...yaku,
-          description: geminiResponse?.description || yaku.description
+          summary: summary.length > 70 ? summary.substring(0, 70) + '...' : summary,
+          exampleTiles: geminiResponse?.exampleTiles || [],
+          description: geminiResponse?.description || yaku.description,
+          han: yaku.han || 1  // hanがない場合は1をデフォルト値とする
         };
       });
 

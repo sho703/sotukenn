@@ -320,7 +320,9 @@ export function useMahjongDeal(): MahjongDealHook {
               const newCpuState = {
                 handTiles: cpuHandTiles,
                 discardTiles: [], // 後で設定
-                winningTile: { id: 'cpu-winning', type: '1m', imagePath: getTileImagePath('1m') } // 仮設定
+                winningTile: cpuTenpaiResult.waitingTiles.length > 0 ?
+                  { id: 'cpu-winning', type: cpuTenpaiResult.waitingTiles[0], imagePath: getTileImagePath(cpuTenpaiResult.waitingTiles[0]) } :
+                  { id: 'cpu-winning', type: '1m', imagePath: getTileImagePath('1m') }
               };
               await setCpuState(newCpuState);
             } else {
@@ -373,10 +375,12 @@ export function useMahjongDeal(): MahjongDealHook {
                         !chiitoitsuResult.hand.includes(tile.type)
                       );
                       const shuffledRemainingTiles = shuffle(remainingTiles);
+                      // ランダムなあたり牌を設定
+                      const randomWinningTile = shuffledRemainingTiles[Math.floor(Math.random() * shuffledRemainingTiles.length)];
                       const newCpuState = {
                         handTiles: chiitoitsuHandTiles,
                         discardTiles: shuffledRemainingTiles.slice(0, 21),
-                        winningTile: { id: 'cpu-winning', type: '1m', imagePath: getTileImagePath('1m') }
+                        winningTile: randomWinningTile || { id: 'cpu-winning', type: '1m', imagePath: getTileImagePath('1m') }
                       };
                       await setCpuState(newCpuState);
                     }
@@ -386,10 +390,12 @@ export function useMahjongDeal(): MahjongDealHook {
                       !chiitoitsuResult.hand.includes(tile.type)
                     );
                     const shuffledRemainingTiles = shuffle(remainingTiles);
+                    // ランダムなあたり牌を設定
+                    const randomWinningTile = shuffledRemainingTiles[Math.floor(Math.random() * shuffledRemainingTiles.length)];
                     const newCpuState = {
                       handTiles: chiitoitsuHandTiles,
                       discardTiles: shuffledRemainingTiles.slice(0, 21),
-                      winningTile: { id: 'cpu-winning', type: '1m', imagePath: getTileImagePath('1m') }
+                      winningTile: randomWinningTile || { id: 'cpu-winning', type: '1m', imagePath: getTileImagePath('1m') }
                     };
                     await setCpuState(newCpuState);
                   }

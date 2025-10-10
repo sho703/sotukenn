@@ -62,129 +62,145 @@ def find_taatsu(tiles):
     return taatsu
 
 def build_tenpai_hand(tiles):
-    """聴牌形を構築（面子3組 + 対子1組 + ターツ1組）"""
+    """聴牌形を構築（面子3組 + 対子1組 + ターツ1組）- 貪欲法"""
     try:
-        tile_counts = count_tiles(tiles)
+        tile_counts = Counter(tiles)
+        hand = []
+        melds_count = 0
         
-        # 1. 刻子・順子を検出して面子リストに入れる
-        melds = []
+        # 1. 刻子を優先的に作る（最大3組）
+        tiles_list = list(tile_counts.keys())
+        random.shuffle(tiles_list)  # ランダム性を持たせる
         
-        # 刻子を検出
-        for tile, count in tile_counts.items():
-            if count >= 3:
-                melds.append([tile, tile, tile])
+        for tile in tiles_list:
+            if melds_count >= 3:
+                break
+            if tile_counts[tile] >= 3:
+                hand.extend([tile, tile, tile])
+                tile_counts[tile] -= 3
+                melds_count += 1
         
-        # 順子を検出
-        for suit in ['m', 'p', 's']:
-            for i in range(1, 8):
+        # 2. 順子を作る（3組まで）
+        suits = ['m', 'p', 's']
+        random.shuffle(suits)  # ランダム性を持たせる
+        
+        for suit in suits:
+            if melds_count >= 3:
+                break
+            numbers = list(range(1, 8))
+            random.shuffle(numbers)  # ランダム性を持たせる
+            
+            for i in numbers:
+                if melds_count >= 3:
+                    break
                 if (tile_counts.get(f"{i}{suit}", 0) >= 1 and
                     tile_counts.get(f"{i+1}{suit}", 0) >= 1 and
                     tile_counts.get(f"{i+2}{suit}", 0) >= 1):
-                    melds.append([f"{i}{suit}", f"{i+1}{suit}", f"{i+2}{suit}"])
+                    hand.extend([f"{i}{suit}", f"{i+1}{suit}", f"{i+2}{suit}"])
+                    tile_counts[f"{i}{suit}"] -= 1
+                    tile_counts[f"{i+1}{suit}"] -= 1
+                    tile_counts[f"{i+2}{suit}"] -= 1
+                    melds_count += 1
         
-        # 刻子検出で使った牌を除外
-        remaining_tiles_for_pairs = []
-        temp_counts = tile_counts.copy()
-        for meld in melds:
-            if len(meld) == 3 and meld[0] == meld[1] == meld[2]:  # 刻子
-                temp_counts[meld[0]] -= 3
-            elif len(meld) == 3:  # 順子
-                for tile in meld:
-                    temp_counts[tile] -= 1
-        
-        for tile, count in temp_counts.items():
-            remaining_tiles_for_pairs.extend([tile] * count)
-        
-        # 2. 対子を検出して対子リストに入れる
-        pairs = []
-        pair_counts = count_tiles(remaining_tiles_for_pairs)
-        for tile, count in pair_counts.items():
-            if count >= 2:
-                pairs.append([tile, tile])
-        
-        # 順子検出で使った牌を除外（刻子は既に除外済み）
-        remaining_tiles_for_taatsu = []
-        temp_counts_for_taatsu = tile_counts.copy()
-        for meld in melds:
-            if len(meld) == 3 and meld[0] != meld[1]:  # 順子のみ
-                for tile in meld:
-                    temp_counts_for_taatsu[tile] -= 1
-        
-        for tile, count in temp_counts_for_taatsu.items():
-            remaining_tiles_for_taatsu.extend([tile] * count)
-        
-        # 3. ターツを検出してターツリストに入れる
-        taatsu = []
-        taatsu_counts = count_tiles(remaining_tiles_for_taatsu)
-        for suit in ['m', 'p', 's']:
-            for i in range(1, 9):
-                if (taatsu_counts.get(f"{i}{suit}", 0) >= 1 and
-                    taatsu_counts.get(f"{i+1}{suit}", 0) >= 1):
-                    taatsu.append([f"{i}{suit}", f"{i+1}{suit}"])
-        
-        # 4. 面子リストから3つ、対子リストから1つ、ターツリストから1つ選ぶ
-        if len(melds) < 3 or len(pairs) < 1 or len(taatsu) < 1:
-            # エラー：必要な要素が不足 - 適当な13枚を返す
+        # 3組の面子が作れなかった場合は失敗
+        if melds_count < 3:
             return random.sample(tiles, min(13, len(tiles)))
         
-        # ランダムに選択
-        random.shuffle(melds)
-        selected_melds = melds[:3]
+        # 3. 対子を作る（1組）
+        pair_added = False
+        remaining_tiles = list(tile_counts.keys())
+        random.shuffle(remaining_tiles)
         
-        random.shuffle(pairs)
-        selected_pair = pairs[0]
+        for tile in remaining_tiles:
+            if tile_counts[tile] >= 2:
+                hand.extend([tile, tile])
+                tile_counts[tile] -= 2
+                pair_added = True
+                break
         
-        random.shuffle(taatsu)
-        selected_taatsu = taatsu[0]
+        if not pair_added:
+            return random.sample(tiles, min(13, len(tiles)))
         
-        # 5. 13枚を完成させる
-        hand = []
-        for meld in selected_melds:
-            hand.extend(meld)
-        hand.extend(selected_pair)
-        hand.extend(selected_taatsu)
+        # 4. ターツを作る（1組）
+        taatsu_added = False
+        suits_for_taatsu = ['m', 'p', 's']
+        random.shuffle(suits_for_taatsu)
         
+        for suit in suits_for_taatsu:
+            if taatsu_added:
+                break
+            numbers_for_taatsu = list(range(1, 9))
+            random.shuffle(numbers_for_taatsu)
+            
+            for i in numbers_for_taatsu:
+                if (tile_counts.get(f"{i}{suit}", 0) >= 1 and
+                    tile_counts.get(f"{i+1}{suit}", 0) >= 1):
+                    hand.extend([f"{i}{suit}", f"{i+1}{suit}"])
+                    tile_counts[f"{i}{suit}"] -= 1
+                    tile_counts[f"{i+1}{suit}"] -= 1
+                    taatsu_added = True
+                    break
+        
+        if not taatsu_added:
+            return random.sample(tiles, min(13, len(tiles)))
+        
+        # 5. 13枚確認
         if len(hand) != 13:
-            # エラー：13枚にならない - 適当な13枚を返す
             return random.sample(tiles, min(13, len(tiles)))
         
         return hand
         
     except Exception as e:
-        # エラー時は適当な13枚を返す
+        # エラー時はランダム13枚
         return random.sample(tiles, min(13, len(tiles)))
 
 def build_chiitoitsu_hand(tiles):
-    """七対子を構築（対子6組 + 単騎1枚）"""
-    tile_counts = count_tiles(tiles)
-    hand = []
-    
-    # 対子候補をリストアップ
-    pair_candidates = []
-    for tile, count in tile_counts.items():
-        if count >= 2:
-            pair_candidates.append(tile)
-    
-    # 対子をランダムに6組選択
-    random.shuffle(pair_candidates)
-    selected_pairs = pair_candidates[:6]
-    
-    for tile in selected_pairs:
-        hand.extend([tile, tile])
-        tile_counts[tile] -= 2  # 使用した分を減算
-    
-    # 単騎候補をリストアップ（対子で使用していない牌）
-    tanki_candidates = []
-    for tile, count in tile_counts.items():
-        if count >= 1:
-            tanki_candidates.append(tile)
-    
-    # 単騎をランダムに1枚選択
-    if tanki_candidates:
+    """七対子を構築（対子6組 + 単騎1枚）- 貪欲法"""
+    try:
+        tile_counts = Counter(tiles)
+        hand = []
+        pairs_count = 0
+        
+        # 1. 対子を貪欲に作る（6組）
+        tiles_list = list(tile_counts.keys())
+        random.shuffle(tiles_list)  # ランダム性を持たせる
+        
+        for tile in tiles_list:
+            if pairs_count >= 6:
+                break
+            if tile_counts[tile] >= 2:
+                hand.extend([tile, tile])
+                tile_counts[tile] -= 2
+                pairs_count += 1
+        
+        # 対子が6組作れなかった場合は失敗
+        if pairs_count < 6:
+            return random.sample(tiles, min(13, len(tiles)))
+        
+        # 2. 単騎を作る（1枚）
+        # 残っている牌から1枚選択
+        tanki_candidates = []
+        for tile, count in tile_counts.items():
+            if count >= 1:
+                # 各牌を枚数分だけ候補に追加
+                tanki_candidates.extend([tile] * count)
+        
+        if not tanki_candidates:
+            return random.sample(tiles, min(13, len(tiles)))
+        
+        # ランダムに1枚選択
         random.shuffle(tanki_candidates)
         hand.append(tanki_candidates[0])
-    
-    return hand[:13]
+        
+        # 3. 13枚確認
+        if len(hand) != 13:
+            return random.sample(tiles, min(13, len(tiles)))
+        
+        return hand
+        
+    except Exception as e:
+        # エラー時はランダム13枚
+        return random.sample(tiles, min(13, len(tiles)))
 
 def validate_tile_usage(hand, available_tiles):
     """牌の重複チェック（1枚しかないのに2枚以上使用していないか）"""

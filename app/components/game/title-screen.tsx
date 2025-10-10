@@ -44,8 +44,8 @@ export function TitleScreen({ onStartGame }: Props) {
             ゲームルール
           </h3>
           <div className="space-y-3 text-left text-white/90 font-japanese">
-            <p>• 13枚の手牌を選択してゲーム開始</p>
-            <p>• 聴牌形提案で最適な手牌を確認</p>
+            <p>• 13枚の手札を選択してゲーム開始</p>
+            <p>• 聴牌形提案で最適な手札を確認</p>
             <p>• 和了でポイント獲得</p>
             <p>• 先に5ポイント獲得した方が勝利</p>
           </div>

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 interface HintPopupProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
+  title: string | ReactNode;
   children: ReactNode;
 }
 

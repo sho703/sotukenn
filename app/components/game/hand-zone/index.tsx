@@ -190,7 +190,7 @@ export function HandZone({ tiles = [], onTileDrop, onReorder }: Props) {
         )}
       </div>
 
-      {/* 手牌表示エリア */}
+      {/* 手札表示エリア */}
       <div
         ref={setNodeRef}
         className="relative min-h-24 flex flex-wrap justify-center gap-2 p-6 border-2 border-dashed border-blue-400 rounded-lg bg-blue-50/80"
@@ -263,7 +263,7 @@ export function HandZone({ tiles = [], onTileDrop, onReorder }: Props) {
       <HintPopup
         isOpen={isHintOpen}
         onClose={() => setIsHintOpen(false)}
-        title={mode === 'seven-pairs' ? "🀄 七対子（チートイツ）のヒント" : "🀄 手牌選択のヒント"}
+        title={mode === 'seven-pairs' ? "🀄 七対子（チートイツ）のヒント" : "🀄 手札選択のヒント"}
       >
         {mode === 'seven-pairs' ? (
           // 七対子モードのヒント
@@ -273,7 +273,7 @@ export function HandZone({ tiles = [], onTileDrop, onReorder }: Props) {
                 📋 七対子（チートイツ）の基本ルール
               </h3>
               <p className="text-lg sm:text-xl leading-relaxed text-gray-700">
-                <span className="font-bold text-blue-600">13枚の手牌</span>で同じ牌2枚を6組と単独の牌1枚を作ります：
+                <span className="font-bold text-blue-600">13枚の手札</span>で同じ牌2枚を6組と単独の牌1枚を作ります：
               </p>
             </div>
 
@@ -375,7 +375,7 @@ export function HandZone({ tiles = [], onTileDrop, onReorder }: Props) {
                 📋 このゲームの基本ルール
               </h3>
               <p className="text-lg sm:text-xl leading-relaxed text-gray-700">
-                <span className="font-bold text-blue-600">13枚の手牌</span>で以下の組み合わせを作ります：
+                <span className="font-bold text-blue-600">13枚の手札</span>で以下の組み合わせを作ります：
               </p>
             </div>
 

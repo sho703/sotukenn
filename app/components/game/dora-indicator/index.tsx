@@ -46,7 +46,7 @@ export function DoraIndicator({ dora }: Props) {
           </p>
 
           <p className="text-2xl sm:text-3xl leading-relaxed text-gray-700">
-            手牌にドラが含まれていると、上がったときの<span className="font-bold text-red-600">得点が増えます。</span>
+            手札にドラが含まれていると、上がったときの<span className="font-bold text-red-600">得点が増えます。</span>
           </p>
 
           <div className="bg-yellow-50 rounded-xl p-6 sm:p-8 border-2 border-yellow-200">
