@@ -94,6 +94,21 @@ const config: Config = {
         'mahjong-tile-hover': '0 4px 8px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1)',
         'mahjong-button': '0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06)',
       },
+      keyframes: {
+        'dora-sparkle': {
+          '0%, 100%': {
+            opacity: '0.2',
+            boxShadow: '0 0 10px rgba(250,204,21,0.3)',
+          },
+          '50%': {
+            opacity: '1',
+            boxShadow: '0 0 30px rgba(250,204,21,1)',
+          },
+        },
+      },
+      animation: {
+        'dora-sparkle': 'dora-sparkle 3s ease-in-out infinite',
+      },
     },
   },
   plugins: [],

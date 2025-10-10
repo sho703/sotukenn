@@ -386,6 +386,7 @@ export function GameBoard({
                   tiles={poolTiles}
                   onTileDrop={moveTile}
                   onReorder={(fromIdx, toIdx) => reorderZone('pool', fromIdx, toIdx)}
+                  dora={dora}
                 />
               </section>
             </>
@@ -478,6 +479,7 @@ export function GameBoard({
                         selected={false}
                         index={index}
                         priority={false}
+                        isDora={tile.type === dora}
                       />
                     </div>
                   ))}
@@ -712,25 +714,25 @@ export function GameBoard({
                 {/* 事前計算された面子情報の表示（一か所だけ） */}
                 {suggestions.length > 0 && suggestions[0].melds && (
                   <div className="mt-8">
-                    <h3 className="text-2xl font-japanese font-bold mb-6 text-mahjong-gold-300 text-center">
+                    <h3 className="text-3xl font-japanese font-bold mb-6 text-mahjong-gold-300 text-center">
                       作れる面子
                     </h3>
-                    <div className="flex flex-wrap justify-center gap-4">
+                    <div className="flex flex-wrap justify-center gap-6">
                       {/* 順子 */}
                       {suggestions[0].melds.sequences.length > 0 && (
-                        <div className="bg-mahjong-table-500/20 p-4 rounded-xl border-2 border-mahjong-table-400/30 min-w-[200px] max-w-[280px]">
-                          <p className="text-sm text-mahjong-gold-300 font-semibold mb-3 text-center">順子 ({suggestions[0].melds.sequences.length}個)</p>
-                          <div className="flex flex-wrap gap-2 justify-center">
+                        <div className="bg-mahjong-table-500/20 p-6 rounded-xl border-4 border-mahjong-table-400/50 min-w-[320px] max-w-[500px]">
+                          <p className="text-lg text-mahjong-gold-300 font-semibold mb-4 text-center">順子 ({suggestions[0].melds.sequences.length}個)</p>
+                          <div className="flex flex-wrap gap-3 justify-center">
                             {suggestions[0].melds.sequences.map((sequence: string[], idx: number) => (
-                              <div key={idx} className="flex gap-1">
+                              <div key={idx} className="flex gap-1.5">
                                 {sequence.map((tile: string, tileIdx: number) => (
-                                  <div key={tileIdx} className="inline-flex w-8 h-10">
+                                  <div key={tileIdx} className="inline-flex w-12 h-16">
                                     <div className="relative w-full h-full">
                                       <Image
                                         src={getTileImagePath(tile)}
                                         alt={tile}
                                         fill
-                                        sizes="32px"
+                                        sizes="48px"
                                         className="object-contain"
                                         priority={false}
                                       />
@@ -745,19 +747,19 @@ export function GameBoard({
 
                       {/* 刻子 */}
                       {suggestions[0].melds.triplets.length > 0 && (
-                        <div className="bg-mahjong-table-500/20 p-4 rounded-xl border-2 border-mahjong-table-400/30 min-w-[200px] max-w-[280px]">
-                          <p className="text-sm text-mahjong-gold-300 font-semibold mb-3 text-center">刻子 ({suggestions[0].melds.triplets.length}個)</p>
-                          <div className="flex flex-wrap gap-2 justify-center">
+                        <div className="bg-mahjong-table-500/20 p-6 rounded-xl border-4 border-mahjong-table-400/50 min-w-[320px] max-w-[500px]">
+                          <p className="text-lg text-mahjong-gold-300 font-semibold mb-4 text-center">刻子 ({suggestions[0].melds.triplets.length}個)</p>
+                          <div className="flex flex-wrap gap-3 justify-center">
                             {suggestions[0].melds.triplets.map((triplet: string[], idx: number) => (
-                              <div key={idx} className="flex gap-1">
+                              <div key={idx} className="flex gap-1.5">
                                 {triplet.map((tile: string, tileIdx: number) => (
-                                  <div key={tileIdx} className="inline-flex w-8 h-10">
+                                  <div key={tileIdx} className="inline-flex w-12 h-16">
                                     <div className="relative w-full h-full">
                                       <Image
                                         src={getTileImagePath(tile)}
                                         alt={tile}
                                         fill
-                                        sizes="32px"
+                                        sizes="48px"
                                         className="object-contain"
                                         priority={false}
                                       />
@@ -772,19 +774,19 @@ export function GameBoard({
 
                       {/* 対子 */}
                       {suggestions[0].melds.pairs.length > 0 && (
-                        <div className="bg-mahjong-table-500/20 p-4 rounded-xl border-2 border-mahjong-table-400/30 min-w-[200px] max-w-[280px]">
-                          <p className="text-sm text-mahjong-gold-300 font-semibold mb-3 text-center">対子 ({suggestions[0].melds.pairs.length}個)</p>
-                          <div className="flex flex-wrap gap-2 justify-center">
+                        <div className="bg-mahjong-table-500/20 p-6 rounded-xl border-4 border-mahjong-table-400/50 min-w-[320px] max-w-[500px]">
+                          <p className="text-lg text-mahjong-gold-300 font-semibold mb-4 text-center">対子 ({suggestions[0].melds.pairs.length}個)</p>
+                          <div className="flex flex-wrap gap-3 justify-center">
                             {suggestions[0].melds.pairs.map((pair: string[], idx: number) => (
-                              <div key={idx} className="flex gap-1">
+                              <div key={idx} className="flex gap-1.5">
                                 {pair.map((tile: string, tileIdx: number) => (
-                                  <div key={tileIdx} className="inline-flex w-8 h-10">
+                                  <div key={tileIdx} className="inline-flex w-12 h-16">
                                     <div className="relative w-full h-full">
                                       <Image
                                         src={getTileImagePath(tile)}
                                         alt={tile}
                                         fill
-                                        sizes="32px"
+                                        sizes="48px"
                                         className="object-contain"
                                         priority={false}
                                       />
@@ -799,19 +801,19 @@ export function GameBoard({
 
                       {/* 塔子（ターツ） */}
                       {suggestions[0].melds.taatsu.length > 0 && (
-                        <div className="bg-mahjong-table-500/20 p-4 rounded-xl border-2 border-mahjong-table-400/30 min-w-[200px] max-w-[280px]">
-                          <p className="text-sm text-mahjong-gold-300 font-semibold mb-3 text-center">塔子 ({suggestions[0].melds.taatsu.length}個)</p>
-                          <div className="flex flex-wrap gap-2 justify-center">
+                        <div className="bg-mahjong-table-500/20 p-6 rounded-xl border-4 border-mahjong-table-400/50 min-w-[320px] max-w-[500px]">
+                          <p className="text-lg text-mahjong-gold-300 font-semibold mb-4 text-center">塔子 ({suggestions[0].melds.taatsu.length}個)</p>
+                          <div className="flex flex-wrap gap-3 justify-center">
                             {suggestions[0].melds.taatsu.map((taatsu: string[], idx: number) => (
-                              <div key={idx} className="flex gap-1">
+                              <div key={idx} className="flex gap-1.5">
                                 {taatsu.map((tile: string, tileIdx: number) => (
-                                  <div key={tileIdx} className="inline-flex w-8 h-10">
+                                  <div key={tileIdx} className="inline-flex w-12 h-16">
                                     <div className="relative w-full h-full">
                                       <Image
                                         src={getTileImagePath(tile)}
                                         alt={tile}
                                         fill
-                                        sizes="32px"
+                                        sizes="48px"
                                         className="object-contain border-2 border-blue-400 rounded"
                                         priority={false}
                                       />

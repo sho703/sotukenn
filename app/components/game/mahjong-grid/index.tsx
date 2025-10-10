@@ -9,10 +9,11 @@ interface Props {
   tiles: Tile[];
   onTileDrop: (tileId: string, fromZone: "hand" | "pool", toZone: "hand" | "pool", atIdx?: number) => void;
   onReorder: (fromIdx: number, toIdx: number) => void;
+  dora?: string;
 }
 
 // ソート可能な麻雀牌コンポーネント
-function SortableMahjongTile({ tile, index }: { tile: Tile; index: number }) {
+function SortableMahjongTile({ tile, index, isDora }: { tile: Tile; index: number; isDora: boolean }) {
   const {
     attributes,
     listeners,
@@ -47,12 +48,13 @@ function SortableMahjongTile({ tile, index }: { tile: Tile; index: number }) {
         selected={false}
         index={index}
         priority={false}
+        isDora={isDora}
       />
     </div>
   );
 }
 
-export function MahjongGrid({ tiles = [], onTileDrop, onReorder }: Props) {
+export function MahjongGrid({ tiles = [], onTileDrop, onReorder, dora }: Props) {
   const { setNodeRef } = useDroppable({
     id: 'pool',
   });
@@ -73,6 +75,7 @@ export function MahjongGrid({ tiles = [], onTileDrop, onReorder }: Props) {
             key={tile.id}
             tile={tile}
             index={index}
+            isDora={tile.type === dora}
           />
         ))}
       </SortableContext>

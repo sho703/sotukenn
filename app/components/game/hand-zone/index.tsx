@@ -263,14 +263,14 @@ export function HandZone({ tiles = [], onTileDrop, onReorder }: Props) {
       <HintPopup
         isOpen={isHintOpen}
         onClose={() => setIsHintOpen(false)}
-        title={mode === 'seven-pairs' ? "🀄 七対子のヒント" : "🀄 手牌選択のヒント"}
+        title={mode === 'seven-pairs' ? "🀄 七対子（チートイツ）のヒント" : "🀄 手牌選択のヒント"}
       >
         {mode === 'seven-pairs' ? (
           // 七対子モードのヒント
           <div className="space-y-6">
             <div className="bg-blue-50 rounded-xl p-4 border-2 border-blue-200">
               <h3 className="text-xl sm:text-2xl font-bold text-blue-800 mb-3">
-                📋 七対子の基本ルール
+                📋 七対子（チートイツ）の基本ルール
               </h3>
               <p className="text-lg sm:text-xl leading-relaxed text-gray-700">
                 <span className="font-bold text-blue-600">13枚の手牌</span>で同じ牌2枚を6組と単独の牌1枚を作ります：
@@ -363,7 +363,7 @@ export function HandZone({ tiles = [], onTileDrop, onReorder }: Props) {
 
             <div className="bg-gray-50 rounded-xl p-4 border-2 border-gray-200">
               <p className="text-base sm:text-lg text-gray-600">
-                💡 七対子アシスト表示の区切り線に従って、この形になるように牌を選んでください
+                💡 七対子（チートイツ）アシスト表示の区切り線に従って、この形になるように牌を選んでください
               </p>
             </div>
           </div>
