@@ -252,6 +252,24 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
     });
   }
 
+  // 三元牌の役牌（白・發・中）: 各三元牌の刻子があれば表示
+  const sangenTiles = ['白', '發', '中'];
+  sangenTiles.forEach(sangenTile => {
+    // 刻子に該当の三元牌があるかチェック
+    const hasSangenTriplet = triplets.some((triplet: string[]) => {
+      return triplet.length === 3 && triplet.every(tile => tile === sangenTile);
+    });
+
+    if (hasSangenTriplet) {
+      yakuList.push({
+        yakuName: sangenTile,
+        possibility: "高い",
+        description: `${sangenTile}の刻子が完成しています。役牌として1翻の役になります。`,
+        han: 1
+      });
+    }
+  });
+
   // 対々和: 刻子3つ+対子1つ
   if (possibleMelds.triplets.length >= 3 && possibleMelds.pairs.length >= 1) {
     yakuList.push({

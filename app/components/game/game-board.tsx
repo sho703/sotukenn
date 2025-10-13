@@ -136,13 +136,56 @@ export function GameBoard({
 
   // 役の詳細情報を取得する関数
   const getYakuDetail = (yakuName: string) => {
-    const yakuDetails: { [key: string]: { reading: string; points: string; tips: string; exampleTiles: string[]; winningTile?: string; highlightEnd?: number } } = {
+    const yakuDetails: { [key: string]: { reading: string; points: string; tips: string; exampleTiles: string[]; winningTile?: string; highlightStart?: number; highlightEnd?: number } } = {
+      'ドラ': {
+        reading: 'ドラ',
+        points: '1ポイント/枚',
+        tips: 'ドラは役ではなく、得点を上げるボーナス牌です。ドラ表示牌の次の牌がドラになります（例：ドラ表示が5萬なら、ドラは6萬）。手札にドラが1枚あるごとに1ポイント追加されます。',
+        exampleTiles: [],
+      },
+      '立直': {
+        reading: 'リーチ',
+        points: '1ポイント',
+        tips: 'テンパイ（あと1枚で上がれる状態）になったときに宣言する役です。このゲームでは自動でリーチがかかります。リーチ後は手札を変更できません。',
+        exampleTiles: ['2m', '3m', '4m', '5p', '6p', '7p', '8p', '8p', '8p', '3s', '4s', '9s', '9s'],
+        winningTile: '2sまたは5s',
+        highlightStart: 0,
+        highlightEnd: 13
+      },
+      '白': {
+        reading: 'ハク',
+        points: '1ポイント',
+        tips: '白（三元牌の1つ）を3枚揃える役です。役牌と呼ばれ、これだけで役になります。',
+        exampleTiles: ['2m', '3m', '4m', '5p', '6p', '7p', '3s', '4s', '5s', '白', '白', '白', '9m'],
+        winningTile: '9m',
+        highlightStart: 9,
+        highlightEnd: 12
+      },
+      '發': {
+        reading: 'ハツ',
+        points: '1ポイント',
+        tips: '發（三元牌の1つ）を3枚揃える役です。役牌と呼ばれ、これだけで役になります。',
+        exampleTiles: ['2m', '3m', '4m', '5p', '6p', '7p', '3s', '4s', '5s', '發', '發', '發', '9m'],
+        winningTile: '9m',
+        highlightStart: 9,
+        highlightEnd: 12
+      },
+      '中': {
+        reading: 'チュン',
+        points: '1ポイント',
+        tips: '中（三元牌の1つ）を3枚揃える役です。役牌と呼ばれ、これだけで役になります。',
+        exampleTiles: ['2m', '3m', '4m', '5p', '6p', '7p', '3s', '4s', '5s', '中', '中', '中', '9m'],
+        winningTile: '9m',
+        highlightStart: 9,
+        highlightEnd: 12
+      },
       'タンヤオ': {
         reading: 'たんやお',
         points: '1ポイント',
         tips: '2〜8の数牌だけで手札を作る役です。1・9の数牌と字牌は使えません。初心者でも作りやすい基本的な役です。',
         exampleTiles: ['2m', '3m', '4m', '5p', '5p', '5p', '6p', '7p', '8p', '4s', '4s', '8s', '8s'],
         winningTile: '8s',
+        highlightStart: 0,
         highlightEnd: 13
       },
       '平和': {
@@ -151,6 +194,7 @@ export function GameBoard({
         tips: '順子3組と対子1組で作る役です。刻子は使えません。両面待ちで上がる必要があります。対子は数字牌（9s9s）で作ります。',
         exampleTiles: ['1m', '2m', '3m', '5p', '6p', '7p', '7s', '8s', '9s', '9s', '9s', '6m', '7m'],
         winningTile: '5mまたは8m',
+        highlightStart: 0,
         highlightEnd: 13
       },
       '一盃口': {
@@ -159,6 +203,7 @@ export function GameBoard({
         tips: '同じ順子を2組作る役です。例えば「1-2-3の萬子」を2組揃えます。',
         exampleTiles: ['1m', '1m', '2m', '2m', '3m', '3m', '4p', '5p', '6p', '7p', '8p', '東', '東'],
         winningTile: '9p',
+        highlightStart: 0,
         highlightEnd: 6
       },
       '七対子': {
@@ -167,6 +212,7 @@ export function GameBoard({
         tips: '同じ牌2枚のペアを7組作る役です。順子や刻子は作らず、すべて対子で揃えます。',
         exampleTiles: ['1m', '1m', '3p', '3p', '5s', '5s', '6s', '6s', '東', '東', '北', '北', '中'],
         winningTile: '中',
+        highlightStart: 0,
         highlightEnd: 13
       },
       '三暗刻': {
@@ -175,6 +221,7 @@ export function GameBoard({
         tips: '同じ牌3枚の刻子を3組作る役です。自分で引いた牌で刻子を作る必要があります。',
         exampleTiles: ['3m', '3m', '3m', '5p', '5p', '5p', '8s', '8s', '8s', '1s', '2s', '南', '南'],
         winningTile: '3s',
+        highlightStart: 0,
         highlightEnd: 9
       },
       '対々和': {
@@ -183,6 +230,7 @@ export function GameBoard({
         tips: '刻子4組と対子1組で手札を作る役です。順子は使わず、すべて刻子と対子で揃えます。',
         exampleTiles: ['1m', '1m', '1m', '5m', '5m', '5m', '2p', '2p', '2p', '8p', '8p', '3s', '3s'],
         winningTile: '3s',
+        highlightStart: 0,
         highlightEnd: 13
       },
       '小三元': {
@@ -191,6 +239,7 @@ export function GameBoard({
         tips: '白・發・中の三元牌のうち、2種類を刻子、1種類を対子にする役です。',
         exampleTiles: ['4m', '5m', '6m', '6p', '6p', '6p', '白', '白', '白', '發', '發', '中', '中'],
         winningTile: '發',
+        highlightStart: 6,
         highlightEnd: 13
       },
       '混全帯么九': {
@@ -199,6 +248,7 @@ export function GameBoard({
         tips: 'すべての面子と対子に1・9の数牌か字牌を含める役です。中間の数牌だけでは作れません。',
         exampleTiles: ['1m', '2m', '3m', '9m', '9m', '9m', '1p', '1p', '1p', '西', '西', '1s', '2s'],
         winningTile: '3s',
+        highlightStart: 0,
         highlightEnd: 13
       },
       '混老頭': {
@@ -207,6 +257,7 @@ export function GameBoard({
         tips: '1・9の数牌と字牌だけで手札を作る役です。2〜8の数牌は使えません。',
         exampleTiles: ['1m', '1m', '1m', '9p', '9p', '9p', '1s', '1s', '1s', '北', '北', '白', '白'],
         winningTile: '白',
+        highlightStart: 0,
         highlightEnd: 13
       },
       '三色同順': {
@@ -215,6 +266,7 @@ export function GameBoard({
         tips: '萬子・筒子・索子で同じ数字の順子を作る役です。例えば「4-5-6」を3色で揃えます。',
         exampleTiles: ['4m', '5m', '6m', '4p', '5p', '6p', '4s', '5s', '6s', '9s', '9s', '西', '西'],
         winningTile: '西',
+        highlightStart: 0,
         highlightEnd: 9
       },
       '三色同刻': {
@@ -223,6 +275,7 @@ export function GameBoard({
         tips: '萬子・筒子・索子で同じ数字の刻子を作る役です。例えば「2」を3色で揃えます。',
         exampleTiles: ['2m', '2m', '2m', '2p', '2p', '2p', '2s', '2s', '2s', '5s', '6s', '北', '北'],
         winningTile: '4s',
+        highlightStart: 0,
         highlightEnd: 9
       },
       '二盃口': {
@@ -231,7 +284,8 @@ export function GameBoard({
         tips: '同じ順子を2組×2セット作る役です。一盃口が2つある状態です。高得点の役です。',
         exampleTiles: ['2m', '2m', '3m', '3m', '4m', '4m', '6p', '6p', '7p', '7p', '8p', '8p', '中'],
         winningTile: '中',
-        highlightEnd: 13
+        highlightStart: 0,
+        highlightEnd: 12
       },
       '純全帯么九': {
         reading: 'ジュンチャンタイヤオチュー',
@@ -239,6 +293,7 @@ export function GameBoard({
         tips: 'すべての面子と対子に1・9の数牌を含める役です。字牌は使えません。',
         exampleTiles: ['1m', '2m', '3m', '9m', '9m', '9m', '1p', '1p', '1p', '9p', '9p', '1s', '2s'],
         winningTile: '3s',
+        highlightStart: 0,
         highlightEnd: 13
       },
       '清一色': {
@@ -247,6 +302,7 @@ export function GameBoard({
         tips: '萬子・筒子・索子のいずれか1種類だけで手札を作る役です。高得点の役です。',
         exampleTiles: ['1m', '1m', '2m', '3m', '4m', '4m', '5m', '5m', '6m', '7m', '7m', '8m', '9m'],
         winningTile: '6m',
+        highlightStart: 0,
         highlightEnd: 13
       },
       '国士無双': {
@@ -255,6 +311,7 @@ export function GameBoard({
         tips: '1・9の数牌と字牌（全13種類）を1枚ずつ揃え、どれか1種類を2枚にする役満です。',
         exampleTiles: ['1m', '9m', '1p', '9p', '1s', '9s', '東', '南', '西', '北', '白', '白', '發'],
         winningTile: '中',
+        highlightStart: 0,
         highlightEnd: 13
       },
       '四暗刻': {
@@ -263,7 +320,8 @@ export function GameBoard({
         tips: '同じ牌3枚の刻子を4組作る役満です。すべて自分で引いた牌で作る必要があります。',
         exampleTiles: ['2m', '2m', '2m', '5m', '5m', '5m', '4s', '4s', '4s', '9p', '9p', '9p', '發'],
         winningTile: '發',
-        highlightEnd: 13
+        highlightStart: 0,
+        highlightEnd: 12
       },
       '字一色': {
         reading: 'ツーイーソー',
@@ -271,6 +329,7 @@ export function GameBoard({
         tips: '字牌（東・南・西・北・白・發・中）だけで手札を作る役満です。数牌は一切使えません。',
         exampleTiles: ['東', '東', '東', '南', '南', '南', '北', '北', '北', '發', '發', '中', '中'],
         winningTile: '中',
+        highlightStart: 0,
         highlightEnd: 13
       },
       '大三元': {
@@ -279,7 +338,8 @@ export function GameBoard({
         tips: '白・發・中の三元牌すべてを刻子にする役満です。非常に難しい役です。',
         exampleTiles: ['白', '白', '白', '發', '發', '發', '中', '中', '中', '2s', '3s', '8s', '8s'],
         winningTile: '1s',
-        highlightEnd: 13
+        highlightStart: 0,
+        highlightEnd: 9
       },
       '小四喜': {
         reading: 'ショウスーシー',
@@ -287,6 +347,7 @@ export function GameBoard({
         tips: '東・南・西・北の風牌のうち、3種類を刻子、1種類を対子にする役満です。',
         exampleTiles: ['4s', '5s', '6s', '東', '東', '東', '南', '南', '南', '西', '西', '北', '北'],
         winningTile: '西',
+        highlightStart: 3,
         highlightEnd: 13
       },
       '大四喜': {
@@ -295,7 +356,8 @@ export function GameBoard({
         tips: '東・南・西・北の風牌すべてを刻子にする役満です。最も難しい役の一つです。',
         exampleTiles: ['東', '東', '東', '南', '南', '南', '西', '西', '西', '北', '北', '北', '8p'],
         winningTile: '8p',
-        highlightEnd: 13
+        highlightStart: 0,
+        highlightEnd: 12
       },
       '清老頭': {
         reading: 'チンロートー',
@@ -303,6 +365,7 @@ export function GameBoard({
         tips: '1と9の数牌だけで手札を作る役満です。字牌は使えません。',
         exampleTiles: ['1m', '1m', '1m', '9m', '9m', '9m', '1p', '1p', '1p', '9p', '9p', '9s', '9s'],
         winningTile: '9s',
+        highlightStart: 0,
         highlightEnd: 13
       },
       '緑一色': {
@@ -311,6 +374,7 @@ export function GameBoard({
         tips: '緑色の牌（2・3・4・6・8の索子と發）だけで手札を作る役満です。',
         exampleTiles: ['2s', '2s', '3s', '3s', '4s', '4s', '6s', '6s', '6s', '8s', '8s', '發', '發'],
         winningTile: '8s',
+        highlightStart: 0,
         highlightEnd: 13
       },
     };
@@ -328,6 +392,7 @@ export function GameBoard({
         tips: `${suitName}だけで手札を作る役です。他の色の数牌や字牌は使えません。高得点の役です。`,
         exampleTiles: [`1${suit}`, `1${suit}`, `2${suit}`, `3${suit}`, `4${suit}`, `4${suit}`, `5${suit}`, `5${suit}`, `6${suit}`, `7${suit}`, `7${suit}`, `8${suit}`, `9${suit}`],
         winningTile: `6${suit}`,
+        highlightStart: 0,
         highlightEnd: 13
       };
     }
@@ -342,6 +407,7 @@ export function GameBoard({
         tips: `${suitName}と字牌だけで手札を作る役です。他の色の数牌は使えません。`,
         exampleTiles: [`1${suit}`, `2${suit}`, `3${suit}`, `4${suit}`, `4${suit}`, `4${suit}`, `7${suit}`, `8${suit}`, `9${suit}`, '南', '南', '北', '北'],
         winningTile: '北',
+        highlightStart: 0,
         highlightEnd: 13
       };
     }
@@ -356,6 +422,7 @@ export function GameBoard({
         tips: `${suitName}で1-2-3、4-5-6、7-8-9の順子を作る役です。同じ色で1から9まで揃えます。`,
         exampleTiles: [`1${suit}`, `2${suit}`, `3${suit}`, `4${suit}`, `5${suit}`, `6${suit}`, `7${suit}`, `8${suit}`, `9${suit}`, '6p', '7p', '東', '東'],
         winningTile: '5p',
+        highlightStart: 0,
         highlightEnd: 9
       };
     }
@@ -370,6 +437,7 @@ export function GameBoard({
         tips: `${suitName}で1112345678999の形を作る役満です。最も美しい役と言われています。`,
         exampleTiles: [`1${suit}`, `1${suit}`, `2${suit}`, `3${suit}`, `4${suit}`, `5${suit}`, `6${suit}`, `7${suit}`, `8${suit}`, `8${suit}`, `9${suit}`, `9${suit}`, `9${suit}`],
         winningTile: `1${suit}`,
+        highlightStart: 0,
         highlightEnd: 13
       };
     }
@@ -384,6 +452,7 @@ export function GameBoard({
         tips: `${suitName}で1112345678999の形を作り、さらに1か9が4枚ある役満です。九蓮宝燈の最高形です。`,
         exampleTiles: [`1${suit}`, `1${suit}`, `1${suit}`, `2${suit}`, `3${suit}`, `4${suit}`, `5${suit}`, `6${suit}`, `7${suit}`, `8${suit}`, `9${suit}`, `9${suit}`, `9${suit}`],
         winningTile: `5${suit}`,
+        highlightStart: 0,
         highlightEnd: 13
       };
     }
@@ -839,8 +908,18 @@ export function GameBoard({
                         ))
                       }
                     </div>
-                    <div className="text-lg text-mahjong-gold-200 font-japanese font-semibold">
-                      和了牌: {winningInfo.winningTile}
+                    <div className="flex items-center justify-center gap-3 text-lg text-mahjong-gold-200 font-japanese font-semibold">
+                      <span>和了牌:</span>
+                      <div className="relative w-12 h-16 inline-block">
+                        <Image
+                          src={getTileImagePath(winningInfo.winningTile)}
+                          alt={winningInfo.winningTile}
+                          fill
+                          sizes="48px"
+                          className="object-contain"
+                          priority={false}
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -851,7 +930,8 @@ export function GameBoard({
                       {translateYaku(winningInfo.yaku).map((yaku, index) => (
                         <span
                           key={index}
-                          className="px-4 py-2 bg-mahjong-gold-500/90 text-white rounded-full text-sm font-japanese font-semibold border-2 border-mahjong-gold-400 shadow-mahjong-tile"
+                          className="px-4 py-2 bg-mahjong-gold-500/90 text-white rounded-full text-sm font-japanese font-semibold border-2 border-mahjong-gold-400 shadow-mahjong-tile cursor-pointer hover:bg-mahjong-gold-600/90 hover:border-mahjong-gold-300 hover:scale-105 transition-all"
+                          onClick={() => setSelectedYakuForDetail(yaku)}
                         >
                           {yaku}
                         </span>
@@ -1317,7 +1397,7 @@ export function GameBoard({
                       {detail.exampleTiles.map((tileCode: string, idx: number) => (
                         <div
                           key={idx}
-                          className={`relative w-14 h-18 ${idx < (detail.highlightEnd || 0) ? 'ring-4 ring-yellow-400 rounded-lg' : ''}`}
+                          className={`relative w-14 h-18 ${idx >= (detail.highlightStart || 0) && idx < (detail.highlightEnd || 0) ? 'ring-4 ring-yellow-400 rounded-lg' : ''}`}
                         >
                           <Image
                             src={getTileImagePath(tileCode)}
