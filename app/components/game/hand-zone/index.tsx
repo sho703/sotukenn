@@ -103,6 +103,7 @@ export function HandZone({ tiles = [], onTileClick }: Props) {
                         src={exampleTile.imagePath}
                         alt={`例示 ${exampleTile.type}`}
                         fill
+                        sizes="(max-width: 640px) 48px, (max-width: 768px) 56px, 64px"
                         className="object-contain"
                         priority={false}
                         draggable={false}

@@ -85,6 +85,7 @@ export function TitleScreen({ onStartGame }: Props) {
                             src={getTileImagePath(tile)}
                             alt={tile}
                             fill
+                            sizes="32px"
                             className="object-contain"
                             priority={false}
                           />
@@ -101,6 +102,7 @@ export function TitleScreen({ onStartGame }: Props) {
                             src={getTileImagePath(tile)}
                             alt={tile}
                             fill
+                            sizes="32px"
                             className="object-contain"
                             priority={false}
                           />
@@ -117,6 +119,7 @@ export function TitleScreen({ onStartGame }: Props) {
                             src={getTileImagePath(tile)}
                             alt={tile}
                             fill
+                            sizes="32px"
                             className="object-contain"
                             priority={false}
                           />
@@ -140,6 +143,7 @@ export function TitleScreen({ onStartGame }: Props) {
                             src={getTileImagePath(tile)}
                             alt={tile}
                             fill
+                            sizes="32px"
                             className="object-contain"
                             priority={false}
                           />
@@ -162,6 +166,7 @@ export function TitleScreen({ onStartGame }: Props) {
                             src={getTileImagePath(tile)}
                             alt={tile}
                             fill
+                            sizes="32px"
                             className="object-contain"
                             priority={false}
                           />

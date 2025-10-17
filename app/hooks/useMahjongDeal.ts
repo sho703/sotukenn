@@ -75,6 +75,18 @@ export function useMahjongDeal(): MahjongDealHook {
   // スコア状態
   const [score, setScore] = useState<ScoreInfo>({ player: 0, cpu: 0 });
 
+  // 聴牌モーダル状態
+  const [tenpaiModal, setTenpaiModal] = useState<{
+    isOpen: boolean;
+    waitingTiles: string[];
+    isTenpai: boolean;
+    error?: string;
+  }>({
+    isOpen: false,
+    waitingTiles: [],
+    isTenpai: false
+  });
+
   // 局数管理
   const [currentRound, setCurrentRound] = useState(1);
 
@@ -422,23 +434,42 @@ export function useMahjongDeal(): MahjongDealHook {
         const result = await response.json();
 
         if (!result.isTenpai) {
-          // 聴牌でない場合はアラートを表示
-          alert('選択した手牌は聴牌ではありません。別の組み合わせを選択してください。');
+          // 聴牌でない場合はモーダルを表示
+          setTenpaiModal({
+            isOpen: true,
+            waitingTiles: [],
+            isTenpai: false,
+            error: '選択した手牌は聴牌ではありません。別の組み合わせを選択してください。'
+          });
           return;
         }
 
         // 聴牌の場合は待ち牌を表示
         if (result.waitingTiles && result.waitingTiles.length > 0) {
-          alert(`聴牌です！待ち牌: ${result.waitingTiles.join(', ')}`);
+          setTenpaiModal({
+            isOpen: true,
+            waitingTiles: result.waitingTiles,
+            isTenpai: true
+          });
         }
       } else {
         console.error('聴牌チェックエラー:', response.status);
-        alert('聴牌チェック中にエラーが発生しました。');
+        setTenpaiModal({
+          isOpen: true,
+          waitingTiles: [],
+          isTenpai: false,
+          error: '聴牌チェック中にエラーが発生しました。'
+        });
         return;
       }
     } catch (error) {
       console.error('聴牌チェックエラー:', error);
-      alert('聴牌チェック中にエラーが発生しました。');
+      setTenpaiModal({
+        isOpen: true,
+        waitingTiles: [],
+        isTenpai: false,
+        error: '聴牌チェック中にエラーが発生しました。'
+      });
       return;
     }
 
@@ -640,6 +671,8 @@ export function useMahjongDeal(): MahjongDealHook {
     // poolTilesの現在の状態を確認
     setPoolTiles(currentPoolTiles => {
       if (currentPoolTiles.length === 0) {
+        // 流局時にCPUの当たり牌を判定
+        checkCpuWinningTiles();
         setGamePhase('draw');
         setIsProcessingWin(false);
         return currentPoolTiles;
@@ -696,6 +729,51 @@ export function useMahjongDeal(): MahjongDealHook {
       console.error('プレイヤー和了判定エラー:', err);
       setError('和了判定中にエラーが発生しました');
       setIsProcessingWin(false);
+    }
+  };
+
+  // 聴牌モーダルを閉じる関数
+  const closeTenpaiModal = () => {
+    setTenpaiModal({
+      isOpen: false,
+      waitingTiles: [],
+      isTenpai: false
+    });
+  };
+
+  // CPUの当たり牌を判定する関数
+  const checkCpuWinningTiles = async () => {
+    if (!cpuState) return;
+
+    try {
+      const response = await fetch('/api/check-tenpai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tiles: cpuState.handTiles.map(t => t.type),
+          dora
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.isTenpai && result.waitingTiles && result.waitingTiles.length > 0) {
+          // 待ち牌をTileオブジェクトに変換
+          const winningTiles = result.waitingTiles.map((tileType: string) => ({
+            id: `cpu-winning-${tileType}-${Date.now()}`,
+            type: tileType as TileType,
+            imagePath: getTileImagePath(tileType as TileType)
+          }));
+
+          // CPU状態を更新して当たり牌を追加
+          setCpuState(prev => prev ? {
+            ...prev,
+            winningTiles
+          } : null);
+        }
+      }
+    } catch (error) {
+      console.error('CPU当たり牌判定エラー:', error);
     }
   };
 
@@ -770,9 +848,11 @@ export function useMahjongDeal(): MahjongDealHook {
     startGame,
     nextRound,
     endGame,
+    closeTenpaiModal,
 
     // 派生状態
     hasDealt: poolTiles.length > 0,
-    currentRound
+    currentRound,
+    tenpaiModal
   };
 }

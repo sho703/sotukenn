@@ -13,6 +13,7 @@ import { getTileImagePath } from '@/app/lib/mahjong';
 import { translateYaku } from '@/lib/yaku-translations';
 import { Button } from '@/components/ui/button';
 import { HintPopup } from '@/app/components/ui/hint-popup';
+import { TenpaiModal } from '@/app/components/ui/tenpai-modal';
 
 interface Props {
   // 基本状態
@@ -23,7 +24,7 @@ interface Props {
   error: string | null;
 
   // CPU状態
-  cpuState: { handTiles: Tile[]; winningTile: Tile } | null;
+  cpuState: { handTiles: Tile[]; winningTile: Tile; winningTiles?: Tile[] } | null;
 
   // 対局状態
   playerDiscards: Tile[];
@@ -54,6 +55,15 @@ interface Props {
   hasDealt: boolean;
   suggestions: TenpaiPattern[] | null;
   currentRound: number;
+  tenpaiModal: {
+    isOpen: boolean;
+    waitingTiles: string[];
+    isTenpai: boolean;
+    error?: string;
+  };
+
+  // 操作
+  closeTenpaiModal: () => void;
 }
 
 export function GameBoard({
@@ -94,7 +104,9 @@ export function GameBoard({
   isAnalyzing,
   hasDealt,
   suggestions,
-  currentRound
+  currentRound,
+  tenpaiModal,
+  closeTenpaiModal
 }: Props) {
   const [isYakuHintOpen, setIsYakuHintOpen] = useState(false);
   const [selectedYakuForDetail, setSelectedYakuForDetail] = useState<string | null>(null);
@@ -881,7 +893,19 @@ export function GameBoard({
                 <div className="mb-6">
                   <div className="text-lg font-semibold mb-3 text-white">相手（CPU）のあたり牌</div>
                   <div className="flex justify-center gap-2 flex-wrap">
-                    {cpuState?.winningTile && (
+                    {cpuState?.winningTiles && cpuState.winningTiles.length > 0 ? (
+                      // 複数の当たり牌を表示（流局時）
+                      cpuState.winningTiles.map((tile: Tile) => (
+                        <div key={`cpu-winning-${tile.id}`} className="w-12 h-16 sm:w-14 sm:h-18 md:w-16 md:h-22">
+                          <MahjongTile
+                            tile={tile}
+                            selected={false}
+                            priority={true}
+                          />
+                        </div>
+                      ))
+                    ) : cpuState?.winningTile ? (
+                      // 単一の当たり牌を表示（通常時）
                       <div key={`cpu-winning-${cpuState.winningTile.id}`} className="w-12 h-16 sm:w-14 sm:h-18 md:w-16 md:h-22">
                         <MahjongTile
                           tile={cpuState.winningTile}
@@ -889,6 +913,8 @@ export function GameBoard({
                           priority={true}
                         />
                       </div>
+                    ) : (
+                      <div className="text-mahjong-gold-300">当たり牌なし</div>
                     )}
                   </div>
                 </div>
@@ -1087,7 +1113,8 @@ export function GameBoard({
                           </h3>
                           <span className={`text-xl font-bold ${yaku.han === 1 ? 'text-white' :
                             yaku.han === 2 ? 'text-yellow-400' :
-                              'text-red-400'
+                              yaku.han === 13 ? 'bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500 bg-clip-text text-transparent animate-pulse' :
+                                'text-red-400'
                             }`}>
                             {yaku.han}ポイント
                           </span>
@@ -1402,6 +1429,15 @@ export function GameBoard({
             </div>
           </div>
         )}
+
+        {/* 聴牌確認モーダル */}
+        <TenpaiModal
+          isOpen={tenpaiModal.isOpen}
+          onClose={closeTenpaiModal}
+          waitingTiles={tenpaiModal.waitingTiles}
+          isTenpai={tenpaiModal.isTenpai}
+          error={tenpaiModal.error}
+        />
       </div>
     </div>
   );

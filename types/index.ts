@@ -18,7 +18,8 @@ export type GamePhase = 'title' | 'selecting' | 'playing' | 'finished' | 'draw';
 export interface CpuState {
   handTiles: Tile[];      // 手牌（13枚）
   discardTiles: Tile[];   // 捨て牌候補（21枚、シャッフル済み）
-  winningTile: Tile;      // 和了牌
+  winningTile: Tile;      // 和了牌（単一）
+  winningTiles?: Tile[];  // 当たり牌（複数、流局時用）
 }
 
 // 和了情報を表す型
