@@ -22,9 +22,9 @@ export function HandZoneWithBlocks({ tiles = [] }: Props) {
       style={{ touchAction: 'none' }}
     >
       {tiles.length === 0 && <div className="text-gray-400 text-lg font-semibold">ここに13枚ドラッグ</div>}
-      {tiles.map((tile, index) => (
+      {tiles.map((tile) => (
         <MahjongTile
-          key={`${tile.id}-${index}`}
+          key={tile.id}
           tile={tile}
           selected
           priority={true}

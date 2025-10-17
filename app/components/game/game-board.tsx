@@ -469,8 +469,8 @@ export function GameBoard({
 
     return (
       <div className="grid grid-cols-6 gap-2 justify-items-center">
-        {discards.map((tile, index) => (
-          <div key={`discard-${tile.id}-${index}`}>
+        {discards.map((tile) => (
+          <div key={`discard-${tile.id}`}>
             <MahjongTile
               tile={tile}
               selected={false}
@@ -674,9 +674,9 @@ export function GameBoard({
                 </Button>
               </div>
               <div className="flex flex-wrap gap-2 justify-center bg-mahjong-gold-500/20 p-6 rounded-xl border-2 border-mahjong-gold-400/30">
-                {poolTiles.map((tile, index) => (
+                {poolTiles.map((tile) => (
                   <div
-                    key={`pool-${tile.id}-${index}`}
+                    key={`pool-${tile.id}`}
                     onClick={() => {
                       if (isPlayerTurn && !isProcessingWin) {
                         discardTile(tile);
@@ -705,9 +705,9 @@ export function GameBoard({
                 <DoraIndicator dora={dora} />
               </div>
               <div className="flex gap-2 justify-center bg-mahjong-blue-500/20 p-6 rounded-xl border-2 border-mahjong-blue-400/30">
-                {handTiles.map((tile, index) => (
+                {handTiles.map((tile) => (
                   <MahjongTile
-                    key={`hand-${tile.id}-${index}`}
+                    key={`hand-${tile.id}`}
                     tile={tile}
                     selected
                     priority={true}
@@ -753,8 +753,8 @@ export function GameBoard({
                   <div className="flex justify-center items-center gap-1 mb-4 bg-mahjong-ivory-500/20 p-4 rounded-xl border-2 border-mahjong-ivory-400/30">
                     {winningInfo.winner === 'player' ?
                       // プレイヤーの最終形（手札 + 和了牌）
-                      [...handTiles, { id: 'winning-player', type: winningInfo.winningTile, imagePath: getTileImagePath(winningInfo.winningTile) }].map((tile, index) => (
-                        <div key={tile.id || index} className="w-8 h-12">
+                      [...handTiles, { id: 'winning-player', type: winningInfo.winningTile, imagePath: getTileImagePath(winningInfo.winningTile) }].map((tile) => (
+                        <div key={tile.id} className="w-8 h-12">
                           <div className="relative w-full h-full">
                             <Image
                               src={tile.imagePath}
@@ -767,8 +767,8 @@ export function GameBoard({
                         </div>
                       )) :
                       // CPUの最終形（手札 + 和了牌）
-                      [...(cpuState?.handTiles || []), { id: 'winning-cpu', type: winningInfo.winningTile, imagePath: getTileImagePath(winningInfo.winningTile) }].map((tile, index) => (
-                        <div key={tile.id || index} className="w-8 h-12">
+                      [...(cpuState?.handTiles || []), { id: 'winning-cpu', type: winningInfo.winningTile, imagePath: getTileImagePath(winningInfo.winningTile) }].map((tile) => (
+                        <div key={tile.id} className="w-8 h-12">
                           <div className="relative w-full h-full">
                             <Image
                               src={tile.imagePath}
@@ -801,9 +801,9 @@ export function GameBoard({
                 <div className="mb-6">
                   <div className="font-japanese font-bold mb-4 text-white text-xl">成立した役：</div>
                   <div className="flex flex-wrap justify-center gap-3">
-                    {translateYaku(winningInfo.yaku).map((yaku, index) => (
+                    {translateYaku(winningInfo.yaku).map((yaku) => (
                       <span
-                        key={index}
+                        key={yaku}
                         className="px-4 py-2 bg-mahjong-gold-500/90 text-white rounded-full text-sm font-japanese font-semibold border-2 border-mahjong-gold-400 shadow-mahjong-tile cursor-pointer hover:bg-mahjong-gold-600/90 hover:border-mahjong-gold-300 hover:scale-105 transition-all"
                         onClick={() => setSelectedYakuForDetail(yaku)}
                       >
@@ -865,8 +865,8 @@ export function GameBoard({
                 <div className="mb-6">
                   <div className="text-lg font-semibold mb-3 text-white">相手（CPU）の手札</div>
                   <div className="flex justify-center gap-2 flex-wrap mb-6">
-                    {cpuState?.handTiles && cpuState.handTiles.map((tile: Tile, index: number) => (
-                      <div key={`cpu-hand-${tile.id}-${index}`} className="w-12 h-16 sm:w-14 sm:h-18 md:w-16 md:h-22">
+                    {cpuState?.handTiles && cpuState.handTiles.map((tile: Tile) => (
+                      <div key={`cpu-hand-${tile.id}`} className="w-12 h-16 sm:w-14 sm:h-18 md:w-16 md:h-22">
                         <MahjongTile
                           tile={tile}
                           selected={false}

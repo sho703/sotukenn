@@ -170,7 +170,7 @@ export function HandZone({ tiles = [], onTileClick }: Props) {
         {tiles.length === 0 && <div className="text-gray-400 text-lg font-semibold relative z-10">ここに13枚クリックして移動</div>}
         {mode === 'none' ? (
           // なしモード：通常の表示
-          tiles.map((tile, index) => (
+          tiles.map((tile) => (
             <ClickableMahjongTile
               key={tile.id}
               tile={tile}
