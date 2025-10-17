@@ -1085,8 +1085,11 @@ export function GameBoard({
                             <span>{yakuIndex === 0 ? '①' : yakuIndex === 1 ? '②' : yakuIndex === 2 ? '③' : yakuIndex === 3 ? '④' : yakuIndex === 4 ? '⑤' : `${yakuIndex + 1}.`}</span>
                             {renderYakuName(yaku.yakuName)}
                           </h3>
-                          <span className="text-xl font-bold text-mahjong-gold-300">
-                            {yaku.possibility === '高い' ? '高' : yaku.possibility === '中程度' ? '中' : '低'}
+                          <span className={`text-xl font-bold ${yaku.han === 1 ? 'text-white' :
+                            yaku.han === 2 ? 'text-yellow-400' :
+                              'text-red-400'
+                            }`}>
+                            {yaku.han}ポイント
                           </span>
                         </div>
 

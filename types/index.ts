@@ -90,6 +90,7 @@ export interface YakuAnalysis {
   yakuName: string;
   possibility: '高い' | '中程度' | '低い';
   description: string;
+  han?: number;
 }
 
 export interface Melds {
