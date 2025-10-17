@@ -474,7 +474,6 @@ export function GameBoard({
             <MahjongTile
               tile={tile}
               selected={false}
-              index={index}
               priority={false}
             />
           </div>
@@ -691,7 +690,6 @@ export function GameBoard({
                     <MahjongTile
                       tile={tile}
                       selected={false}
-                      index={index}
                       priority={false}
                       isDora={tile.type === dora}
                     />
@@ -712,7 +710,6 @@ export function GameBoard({
                     key={`hand-${tile.id}-${index}`}
                     tile={tile}
                     selected
-                    index={index}
                     priority={true}
                   />
                 ))}
@@ -873,7 +870,6 @@ export function GameBoard({
                         <MahjongTile
                           tile={tile}
                           selected={false}
-                          index={index}
                           priority={true}
                         />
                       </div>
@@ -890,7 +886,6 @@ export function GameBoard({
                         <MahjongTile
                           tile={cpuState.winningTile}
                           selected={false}
-                          index={0}
                           priority={true}
                         />
                       </div>

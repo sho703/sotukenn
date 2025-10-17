@@ -10,7 +10,7 @@ interface Props {
 }
 
 // クリック可能な麻雀牌コンポーネント
-function ClickableMahjongTile({ tile, index, isDora, onTileClick }: { tile: Tile; index: number; isDora: boolean; onTileClick: (tileId: string) => void }) {
+function ClickableMahjongTile({ tile, isDora, onTileClick }: { tile: Tile; isDora: boolean; onTileClick: (tileId: string) => void }) {
   return (
     <div
       onClick={() => onTileClick(tile.id)}
@@ -19,7 +19,6 @@ function ClickableMahjongTile({ tile, index, isDora, onTileClick }: { tile: Tile
       <MahjongTile
         tile={tile}
         selected={false}
-        index={index}
         priority={false}
         isDora={isDora}
       />
@@ -34,7 +33,6 @@ export function MahjongGrid({ tiles = [], onTileClick, dora }: Props) {
         <ClickableMahjongTile
           key={tile.id}
           tile={tile}
-          index={index}
           isDora={tile.type === dora}
           onTileClick={onTileClick}
         />

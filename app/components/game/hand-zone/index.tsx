@@ -13,7 +13,7 @@ interface Props {
 }
 
 // クリック可能な麻雀牌コンポーネント
-function ClickableMahjongTile({ tile, index, onTileClick }: { tile: Tile; index: number; onTileClick: (tileId: string) => void }) {
+function ClickableMahjongTile({ tile, onTileClick }: { tile: Tile; onTileClick: (tileId: string) => void }) {
   return (
     <div
       onClick={() => onTileClick(tile.id)}
@@ -22,7 +22,6 @@ function ClickableMahjongTile({ tile, index, onTileClick }: { tile: Tile; index:
       <MahjongTile
         tile={tile}
         selected
-        index={index}
         priority={true}
       />
     </div>
@@ -175,7 +174,6 @@ export function HandZone({ tiles = [], onTileClick }: Props) {
             <ClickableMahjongTile
               key={tile.id}
               tile={tile}
-              index={index}
               onTileClick={onTileClick}
             />
           ))
@@ -204,7 +202,6 @@ export function HandZone({ tiles = [], onTileClick }: Props) {
                           <div key={tile.id} className="w-12 h-16 sm:w-14 sm:h-18 md:w-16 md:h-22 flex items-center justify-center">
                             <ClickableMahjongTile
                               tile={tile}
-                              index={tileIndex - 1}
                               onTileClick={onTileClick}
                             />
                           </div>

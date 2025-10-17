@@ -27,7 +27,6 @@ export function HandZoneWithBlocks({ tiles = [] }: Props) {
           key={`${tile.id}-${index}`}
           tile={tile}
           selected
-          index={index}
           priority={true}
         />
       ))}

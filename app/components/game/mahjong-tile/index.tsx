@@ -8,12 +8,11 @@ import { useState } from "react";
 interface Props {
   tile: Tile;
   selected?: boolean;
-  index: number;
   priority?: boolean;
   isDora?: boolean;
 }
 
-export function MahjongTile({ tile, selected, index, priority = false, isDora = false }: Props) {
+export function MahjongTile({ tile, selected, priority = false, isDora = false }: Props) {
   const [imageError, setImageError] = useState(false);
 
   return (
