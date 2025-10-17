@@ -51,7 +51,7 @@ function countTilesByType(tiles: string[]): { man: number, pin: number, sou: num
 }
 
 // 役を自動検出する関数
-function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any): { yakuName: string, possibility: string, description: string, han?: number }[] {
+function detectPossibleYaku(tiles: string[], possibleMelds: { pairs: string[][], sequences: string[][], triplets: string[][], taatsu: string[][] }, tileCounts: { man: number; pin: number; sou: number; honor: number; honorDetails: Record<string, number> }): { yakuName: string, possibility: string, description: string, han?: number }[] {
   const yakuList: { yakuName: string, possibility: string, description: string, han?: number }[] = [];
 
   // 七対子: 対子6個以上
@@ -69,8 +69,7 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
   const availableKokushiTiles = kokushiTiles.filter(tile => {
     if (tile.endsWith('m') || tile.endsWith('p') || tile.endsWith('s')) {
       // 数牌の場合
-      const suit = tile.endsWith('m') ? 'man' : tile.endsWith('p') ? 'pin' : 'sou';
-      const number = tile.charAt(0);
+      // 数牌の処理
       return tiles.includes(tile);
     } else {
       // 字牌の場合
@@ -420,7 +419,7 @@ function detectPossibleYaku(tiles: string[], possibleMelds: any, tileCounts: any
   });
 
   // 同じ順子が2つ以上あるかチェック
-  const duplicateSequences = Object.entries(sequenceCounts).filter(([key, count]) => count >= 2);
+  const duplicateSequences = Object.entries(sequenceCounts).filter(([, count]) => count >= 2);
 
   if (duplicateSequences.length >= 1) {
     yakuList.push({
@@ -991,7 +990,7 @@ function findPossibleMelds(tiles: string[]): { sequences: string[][], triplets: 
 }
 
 // Gemini APIに送信するプロンプトを生成
-function generatePrompt(tiles: string[], handTiles: string[], detectedYaku: any[]): string {
+function generatePrompt(tiles: string[], handTiles: string[], detectedYaku: { yakuName: string, possibility: string, description: string, han?: number }[]): string {
   const selectedCount = handTiles.length;
   const japaneseTiles = convertTilesToJapanese(tiles);
   const japaneseHandTiles = convertTilesToJapanese(handTiles);
@@ -1003,7 +1002,7 @@ function generatePrompt(tiles: string[], handTiles: string[], detectedYaku: any[
   // 順子・刻子を事前計算
   const possibleMelds = findPossibleMelds(tiles);
 
-  let prompt = `あなたは麻雀を熟知し、思考力が長けているプロ雀士です。普通の麻雀とは全く違うルールだが以下のルールをよく理解し、最適な手牌選択や戦略を提案してください。
+  const prompt = `あなたは麻雀を熟知し、思考力が長けているプロ雀士です。普通の麻雀とは全く違うルールだが以下のルールをよく理解し、最適な手牌選択や戦略を提案してください。
 
 【ゲームルール】
 この二人麻雀ゲームは以下のオリジナルルールです：
@@ -1214,7 +1213,7 @@ export async function POST(req: Request) {
 
       // 検出された役のdescriptionをGeminiの回答で補完
       const enhancedYaku = detectedYaku.map(yaku => {
-        const geminiResponse = parsedResponse.yakuAnalysis?.find((geminiYaku: any) =>
+        const geminiResponse = parsedResponse.yakuAnalysis?.find((geminiYaku: { yakuName: string }) =>
           geminiYaku.yakuName === yaku.yakuName
         );
         const summary = geminiResponse?.summary || yaku.description;

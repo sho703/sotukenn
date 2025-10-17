@@ -1,11 +1,11 @@
 'use client';
 
 import { MahjongTile } from '../mahjong-tile';
+import Image from 'next/image';
 import { Tile } from '../types';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { HintPopup } from '@/app/components/ui/hint-popup';
-import Image from 'next/image';
 
 interface Props {
   tiles: Tile[];
@@ -99,11 +99,13 @@ export function HandZone({ tiles = [], onTileClick }: Props) {
 
                   const exampleTile = exampleTilesForMode[tileIndexInArray] || exampleTilesForMode[0];
                   return (
-                    <div key={tileIndex} className="opacity-20 w-12 h-16 sm:w-14 sm:h-18 md:w-16 md:h-22 flex items-center justify-center">
-                      <img
+                    <div key={tileIndex} className="opacity-20 w-12 h-16 sm:w-14 sm:h-18 md:w-16 md:h-22 flex items-center justify-center relative">
+                      <Image
                         src={exampleTile.imagePath}
                         alt={`例示 ${exampleTile.type}`}
-                        className="w-full h-full object-contain"
+                        fill
+                        className="object-contain"
+                        priority={false}
                         draggable={false}
                       />
                     </div>

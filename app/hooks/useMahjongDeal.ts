@@ -40,12 +40,6 @@ function setupCpuTiles(tiles: Tile[]): CpuState {
   };
 }
 
-// CPUの自動応答を処理する関数
-function handleCpuResponse(discardedTile: Tile): { isWin: boolean; points: number | null } {
-  // ランダムに和了判定（20%の確率で和了）
-  const isWin = Math.random() < 0.2;
-  return { isWin, points: isWin ? Math.floor(Math.random() * 5) + 1 : null };
-}
 
 function convertToTiles(tileTypes: TileType[]): Tile[] {
   return tileTypes.map((type) => ({
@@ -152,10 +146,6 @@ export function useMahjongDeal(): MahjongDealHook {
     });
   };
 
-  // 勝利判定（5ポイント先取）
-  const checkWinCondition = (): boolean => {
-    return score.player >= 5 || score.cpu >= 5;
-  };
 
   // ゲーム開始
   const startGame = () => {
@@ -509,7 +499,7 @@ export function useMahjongDeal(): MahjongDealHook {
     }
 
     let fromArr = fromZone === "hand" ? handTiles : poolTiles;
-    let toArr = toZone === "hand" ? handTiles : poolTiles;
+    const toArr = toZone === "hand" ? handTiles : poolTiles;
     const movingTile = fromArr.find((t) => t.id === tileId);
 
     if (!movingTile) return;

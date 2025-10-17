@@ -10,7 +10,7 @@ interface Props {
   onReorder: (fromIdx: number, toIdx: number) => void;
 }
 
-export function HandZoneWithBlocks({ tiles = [], onTileDrop, onReorder }: Props) {
+export function HandZoneWithBlocks({ tiles = [] }: Props) {
   const { setNodeRef } = useDroppable({
     id: 'hand',
   });

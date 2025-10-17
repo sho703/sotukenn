@@ -46,7 +46,7 @@ async function checkTenpaiWithPython(tiles: string[], dora: string): Promise<Ten
       try {
         const result = JSON.parse(output.trim());
         resolve(result);
-      } catch (error) {
+      } catch {
         console.error('Failed to parse Python output:', output);
         reject(new Error('Failed to parse Python script output'));
       }

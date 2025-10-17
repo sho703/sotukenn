@@ -6,8 +6,7 @@ import { MahjongGrid } from './mahjong-grid';
 import { MahjongTile } from './mahjong-tile';
 import { DoraIndicator } from './dora-indicator';
 import { Tile } from './types';
-import { TenpaiPattern, WinningInfo, ScoreInfo, YakuAnalysis, Melds } from '@/types';
-import { GameHeader } from './game-header';
+import { TenpaiPattern, WinningInfo, ScoreInfo, YakuAnalysis } from '@/types';
 import { TitleScreen } from './title-screen';
 import Image from 'next/image';
 import { getTileImagePath } from '@/app/lib/mahjong';
@@ -24,7 +23,7 @@ interface Props {
   error: string | null;
 
   // CPU状態
-  cpuState: any | null;
+  cpuState: { handTiles: Tile[]; winningTile: Tile } | null;
 
   // 対局状態
   playerDiscards: Tile[];
@@ -82,7 +81,6 @@ export function GameBoard({
 
   // 操作
   moveTile,
-  reorderZone,
   dealTiles,
   reset,
   completeSelection,
@@ -1080,7 +1078,7 @@ export function GameBoard({
                     </Button>
                   </div>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {suggestions[0].yakuAnalysis.map((yaku: any, yakuIndex: number) => (
+                    {suggestions[0].yakuAnalysis.map((yaku: YakuAnalysis, yakuIndex: number) => (
                       <div
                         key={yakuIndex}
                         className="bg-black/30 p-6 rounded-xl shadow-mahjong-tile border-2 border-mahjong-gold-400/30 cursor-pointer hover:border-mahjong-gold-400/60 hover:bg-black/40 transition-all"
@@ -1092,30 +1090,15 @@ export function GameBoard({
                             <span>{yakuIndex === 0 ? '①' : yakuIndex === 1 ? '②' : yakuIndex === 2 ? '③' : yakuIndex === 3 ? '④' : yakuIndex === 4 ? '⑤' : `${yakuIndex + 1}.`}</span>
                             {renderYakuName(yaku.yakuName)}
                           </h3>
-                          <span className={`text-xl font-bold ${yaku.han === 1 ? 'text-white' :
-                            yaku.han === 2 ? 'text-yellow-400' :
-                              'text-red-400'
-                            }`}>
-                            {yaku.han}ポイント
+                          <span className="text-xl font-bold text-mahjong-gold-300">
+                            {yaku.possibility === '高い' ? '高' : yaku.possibility === '中程度' ? '中' : '低'}
                           </span>
                         </div>
 
-                        {/* 一言説明 */}
-                        {yaku.summary && (
-                          <div className="mb-4">
-                            <p className="text-lg font-semibold text-white">
-                              {yaku.summary}
-                            </p>
-                          </div>
-                        )}
-
-
-                        {/* 従来の説明文（フォールバック） */}
-                        {!yaku.summary && yaku.description && (
-                          <div className="text-mahjong-ivory-200 leading-relaxed text-base">
-                            {yaku.description}
-                          </div>
-                        )}
+                        {/* 説明文 */}
+                        <div className="text-mahjong-ivory-200 leading-relaxed text-base">
+                          {yaku.description}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -1308,24 +1291,6 @@ export function GameBoard({
             `🀄 ${selectedYakuForDetail}（${getYakuDetail(selectedYakuForDetail).reading}）`
           );
 
-          const headerContent = suit && tileCode ? (
-            <span className="flex items-center gap-2">
-              <span>{baseName}</span>
-              <div className="relative w-8 h-12 inline-block">
-                <Image
-                  src={getTileImagePath(tileCode)}
-                  alt={suit}
-                  fill
-                  sizes="32px"
-                  className="object-contain"
-                  priority={false}
-                />
-              </div>
-              <span>について</span>
-            </span>
-          ) : (
-            `${selectedYakuForDetail}について`
-          );
 
           return (
             <HintPopup
