@@ -29,7 +29,6 @@ export function HandZoneWithBlocks({ tiles = [] }: Props) {
           selected
           index={index}
           priority={true}
-          sortable={false}
         />
       ))}
     </div>
