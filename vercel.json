@@ -1,22 +1,16 @@
 {
   "functions": {
-    "app/api/generate-cpu-tenpai/route.ts": {
-      "runtime": "nodejs18.x"
+    "api/check-win.py": {
+      "runtime": "python3.9"
     },
-    "app/api/check-tenpai/route.ts": {
-      "runtime": "nodejs18.x"
+    "api/check-tenpai.py": {
+      "runtime": "python3.9"
     },
-    "app/api/check-win/route.ts": {
-      "runtime": "nodejs18.x"
+    "api/generate-cpu-tenpai.py": {
+      "runtime": "python3.9"
     },
     "app/api/suggest-tenpai/route.ts": {
       "runtime": "nodejs18.x"
     }
-  },
-  "builds": [
-    {
-      "src": "python/**/*.py",
-      "use": "@vercel/python"
-    }
-  ]
+  }
 }

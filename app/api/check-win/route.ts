@@ -41,7 +41,7 @@ async function checkWinWithPython(tiles: string[], lastTile: string, dora: strin
     console.log('Python script input:', inputData);
 
     // Python プロセスを起動
-    const python = spawn('python3', [pythonScript, inputData]);
+    const python = spawn('python', [pythonScript, inputData]);
 
     let output = '';
     let errorOutput = '';
