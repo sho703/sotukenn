@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const pythonScriptPath = path.join(process.cwd(), 'python', 'cpu_tenpai_generator.py');
 
     return new Promise<Response>((resolve) => {
-      const pythonProcess = spawn('python', [pythonScriptPath, JSON.stringify({ tiles, dora })]);
+      const pythonProcess = spawn('python3', [pythonScriptPath, JSON.stringify({ tiles, dora })]);
 
       let output = '';
       let errorOutput = '';

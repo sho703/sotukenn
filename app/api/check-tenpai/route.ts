@@ -23,7 +23,7 @@ async function checkTenpaiWithPython(tiles: string[], dora: string): Promise<Ten
       dora: dora
     });
 
-    const python = spawn('python', [pythonScript, inputData]);
+    const python = spawn('python3', [pythonScript, inputData]);
 
     let output = '';
     let errorOutput = '';
