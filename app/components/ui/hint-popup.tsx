@@ -39,7 +39,7 @@ export function HintPopup({ isOpen, onClose, title, children }: HintPopupProps) 
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full mx-4 sm:mx-8 max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-200"
+        className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full mx-4 sm:mx-8 max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ヘッダー */}

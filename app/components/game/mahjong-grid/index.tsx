@@ -1,47 +1,20 @@
 'use client';
 
-import { useDroppable } from '@dnd-kit/core';
-import { SortableContext, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { MahjongTile } from '../mahjong-tile';
 import { Tile } from '../types';
 
 interface Props {
   tiles: Tile[];
-  onTileDrop: (tileId: string, fromZone: "hand" | "pool", toZone: "hand" | "pool", atIdx?: number) => void;
-  onReorder: (fromIdx: number, toIdx: number) => void;
+  onTileClick: (tileId: string) => void;
   dora?: string;
 }
 
-// ソート可能な麻雀牌コンポーネント
-function SortableMahjongTile({ tile, index, isDora }: { tile: Tile; index: number; isDora: boolean }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({
-    id: tile.id,
-    data: {
-      type: 'tile',
-      index,
-    }
-  });
-
-  const style = {
-    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
-    transition,
-  };
-
+// クリック可能な麻雀牌コンポーネント
+function ClickableMahjongTile({ tile, index, isDora, onTileClick }: { tile: Tile; index: number; isDora: boolean; onTileClick: (tileId: string) => void }) {
   return (
     <div
-      ref={setNodeRef}
-      style={{
-        ...style,
-        touchAction: 'none'
-      }}
-      {...attributes}
-      {...listeners}
+      onClick={() => onTileClick(tile.id)}
+      className="cursor-pointer hover:scale-105 transition-transform"
     >
       <MahjongTile
         tile={tile}
@@ -54,31 +27,18 @@ function SortableMahjongTile({ tile, index, isDora }: { tile: Tile; index: numbe
   );
 }
 
-export function MahjongGrid({ tiles = [], onTileDrop, onReorder, dora }: Props) {
-  const { setNodeRef } = useDroppable({
-    id: 'pool',
-  });
-
+export function MahjongGrid({ tiles = [], onTileClick, dora }: Props) {
   return (
-    <div
-      ref={setNodeRef}
-      className="grid grid-cols-7 sm:grid-cols-9 md:grid-cols-11 lg:grid-cols-13 xl:grid-cols-15 2xl:grid-cols-17 gap-2 p-6 bg-transparent rounded max-w-7xl mx-auto"
-      style={{ touchAction: 'none' }}
-    >
-      <SortableContext
-        id="pool"
-        items={tiles.map(t => t.id)}
-        strategy={rectSortingStrategy}
-      >
-        {tiles.map((tile, index) => (
-          <SortableMahjongTile
-            key={tile.id}
-            tile={tile}
-            index={index}
-            isDora={tile.type === dora}
-          />
-        ))}
-      </SortableContext>
+    <div className="grid grid-cols-7 sm:grid-cols-9 md:grid-cols-11 lg:grid-cols-13 xl:grid-cols-15 2xl:grid-cols-17 gap-2 p-6 bg-transparent rounded max-w-7xl mx-auto">
+      {tiles.map((tile, index) => (
+        <ClickableMahjongTile
+          key={tile.id}
+          tile={tile}
+          index={index}
+          isDora={tile.type === dora}
+          onTileClick={onTileClick}
+        />
+      ))}
     </div>
   );
 }
