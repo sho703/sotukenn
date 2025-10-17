@@ -15,7 +15,7 @@ interface TenpaiCheckResponse {
 
 // Python スクリプトを実行して聴牌判定
 async function checkTenpaiWithPython(tiles: string[], dora: string): Promise<TenpaiCheckResponse> {
-  return new Promise((resolve, reject) => {
+  return new Promise<TenpaiCheckResponse>((resolve, reject) => {
     const pythonScript = path.join(process.cwd(), 'python', 'tenpai_checker.py');
 
     const inputData = JSON.stringify({

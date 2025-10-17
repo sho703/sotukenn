@@ -23,7 +23,7 @@ function convertTileFormat(tile: string): string {
 
 // Python スクリプトを実行して和了判定
 async function checkWinWithPython(tiles: string[], lastTile: string, dora: string): Promise<WinCheckResponse> {
-  return new Promise((resolve, reject) => {
+  return new Promise<WinCheckResponse>((resolve, reject) => {
     // 牌を mahjong ライブラリの形式に変換
     const convertedTiles = tiles.map(convertTileFormat);
     const convertedLastTile = convertTileFormat(lastTile);
