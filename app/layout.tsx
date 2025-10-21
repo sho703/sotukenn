@@ -15,8 +15,8 @@ const notoSerifJP = Noto_Serif_JP({
 });
 
 export const metadata = {
-  title: "麻雀練習アプリ",
-  description: "麻雀の手牌練習ができるアプリケーション",
+  title: "二人麻雀",
+  description: "2人対戦の麻雀ゲーム",
   icons: {
     icon: '/favicon.svg',
   },

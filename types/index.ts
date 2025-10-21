@@ -79,6 +79,13 @@ export interface MahjongDealHook extends MahjongDealState {
   nextRound: () => void;  // 次の局へ
   endGame: () => void;  // ゲーム終了
   currentRound: number;  // 現在の局数
+  tenpaiModal: {
+    isOpen: boolean;
+    waitingTiles: string[];
+    isTenpai: boolean;
+    error?: string;
+  };
+  closeTenpaiModal: () => void;
 }
 
 // Tenpai Analysis Types
