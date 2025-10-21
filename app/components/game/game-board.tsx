@@ -14,6 +14,7 @@ import { translateYaku } from '@/lib/yaku-translations';
 import { Button } from '@/components/ui/button';
 import { HintPopup } from '@/app/components/ui/hint-popup';
 import { TenpaiModal } from '@/app/components/ui/tenpai-modal';
+import { CustomTooltip } from '@/app/components/ui/custom-tooltip';
 
 interface Props {
   // 基本状態
@@ -676,14 +677,16 @@ export function GameBoard({
                   {isProcessingWin ? <span className="text-mahjong-gold-300 ml-2 text-xl">（上がり判定中...）</span> :
                     !isPlayerTurn && <span className="text-gray-400 ml-2 text-xl">（CPUの番です）</span>}
                 </h2>
-                <Button
-                  onClick={() => setIsDiscardHintOpen(true)}
-                  variant="outline"
-                  className="text-blue-600 border-blue-300 hover:bg-blue-50"
-                  size="sm"
-                >
-                  💡 捨てる牌の選び方
-                </Button>
+                <CustomTooltip content="💡 クリックで捨てる牌の選び方を表示">
+                  <Button
+                    onClick={() => setIsDiscardHintOpen(true)}
+                    variant="outline"
+                    className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                    size="sm"
+                  >
+                    💡 捨てる牌の選び方
+                  </Button>
+                </CustomTooltip>
               </div>
               <div className="flex flex-wrap gap-2 justify-center bg-mahjong-gold-500/20 p-6 rounded-xl border-2 border-mahjong-gold-400/30">
                 {poolTiles.map((tile) => (
@@ -814,13 +817,14 @@ export function GameBoard({
                   <div className="font-japanese font-bold mb-4 text-white text-xl">成立した役：</div>
                   <div className="flex flex-wrap justify-center gap-3">
                     {translateYaku(winningInfo.yaku).map((yaku) => (
-                      <span
-                        key={yaku}
-                        className="px-4 py-2 bg-mahjong-gold-500/90 text-white rounded-full text-sm font-japanese font-semibold border-2 border-mahjong-gold-400 shadow-mahjong-tile cursor-pointer hover:bg-mahjong-gold-600/90 hover:border-mahjong-gold-300 hover:scale-105 transition-all"
-                        onClick={() => setSelectedYakuForDetail(yaku)}
-                      >
-                        {yaku}
-                      </span>
+                      <CustomTooltip key={yaku} content="💡 クリックで役の詳細を表示">
+                        <span
+                          className="px-4 py-2 bg-mahjong-gold-500/90 text-white rounded-full text-sm font-japanese font-semibold border-2 border-mahjong-gold-400 shadow-mahjong-tile cursor-pointer hover:bg-mahjong-gold-600/90 hover:border-mahjong-gold-300 hover:scale-105 transition-all"
+                          onClick={() => setSelectedYakuForDetail(yaku)}
+                        >
+                          {yaku}
+                        </span>
+                      </CustomTooltip>
                     ))}
                   </div>
                 </div>
@@ -1089,42 +1093,45 @@ export function GameBoard({
                     <h3 className="text-3xl font-japanese font-bold text-mahjong-gold-300 text-center">
                       作れる可能性がある役
                     </h3>
-                    <Button
-                      onClick={() => setIsYakuHintOpen(true)}
-                      variant="outline"
-                      className="text-blue-600 border-blue-300 hover:bg-blue-50 ml-4"
-                      size="sm"
-                    >
-                      💡 役とは？
-                    </Button>
+                    <CustomTooltip content="💡 クリックで役の説明を表示">
+                      <Button
+                        onClick={() => setIsYakuHintOpen(true)}
+                        variant="outline"
+                        className="text-blue-600 border-blue-300 hover:bg-blue-50 ml-4"
+                        size="sm"
+                      >
+                        💡 役とは？
+                      </Button>
+                    </CustomTooltip>
                   </div>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {suggestions[0].yakuAnalysis.map((yaku: YakuAnalysis, yakuIndex: number) => (
-                      <div
-                        key={yakuIndex}
-                        className="bg-black/30 p-6 rounded-xl shadow-mahjong-tile border-2 border-mahjong-gold-400/30 cursor-pointer hover:border-mahjong-gold-400/60 hover:bg-black/40 transition-all"
-                        onClick={() => setSelectedYakuForDetail(yaku.yakuName)}
-                      >
-                        {/* ヘッダー: 役名とポイント */}
-                        <div className="flex justify-between items-center mb-4">
-                          <h3 className="text-2xl font-japanese font-bold text-mahjong-gold-300 flex items-center gap-2">
-                            <span>{yakuIndex === 0 ? '①' : yakuIndex === 1 ? '②' : yakuIndex === 2 ? '③' : yakuIndex === 3 ? '④' : yakuIndex === 4 ? '⑤' : `${yakuIndex + 1}.`}</span>
-                            {renderYakuName(yaku.yakuName)}
-                          </h3>
-                          <span className={`text-xl font-bold ${yaku.han === 1 ? 'text-white' :
-                            yaku.han === 2 ? 'text-yellow-400' :
-                              yaku.han === 13 ? 'bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500 bg-clip-text text-transparent animate-pulse' :
-                                'text-red-400'
-                            }`}>
-                            {yaku.han}ポイント
-                          </span>
-                        </div>
+                      <CustomTooltip key={yakuIndex} content="💡 クリックで役の詳細を表示">
+                        <div
+                          className="bg-black/30 p-6 rounded-xl shadow-mahjong-tile border-2 border-mahjong-gold-400/30 cursor-pointer hover:border-mahjong-gold-400/60 hover:bg-black/40 transition-all"
+                          onClick={() => setSelectedYakuForDetail(yaku.yakuName)}
+                        >
+                          {/* ヘッダー: 役名とポイント */}
+                          <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-2xl font-japanese font-bold text-mahjong-gold-300 flex items-center gap-2">
+                              <span>{yakuIndex === 0 ? '①' : yakuIndex === 1 ? '②' : yakuIndex === 2 ? '③' : yakuIndex === 3 ? '④' : yakuIndex === 4 ? '⑤' : `${yakuIndex + 1}.`}</span>
+                              {renderYakuName(yaku.yakuName)}
+                            </h3>
+                            <span className={`text-xl font-bold ${yaku.han === 1 ? 'text-white' :
+                              yaku.han === 2 ? 'text-yellow-400' :
+                                yaku.han === 13 ? 'bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500 bg-clip-text text-transparent animate-pulse' :
+                                  'text-red-400'
+                              }`}>
+                              {yaku.han}ポイント
+                            </span>
+                          </div>
 
-                        {/* 説明文 */}
-                        <div className="text-mahjong-ivory-200 leading-relaxed text-base">
-                          {yaku.description}
+                          {/* 説明文 */}
+                          <div className="text-mahjong-ivory-200 leading-relaxed text-base">
+                            {yaku.description}
+                          </div>
                         </div>
-                      </div>
+                      </CustomTooltip>
                     ))}
                   </div>
                 </div>
@@ -1441,4 +1448,4 @@ export function GameBoard({
       </div>
     </div>
   );
-}
+} 

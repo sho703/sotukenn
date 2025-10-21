@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { getTileImagePath } from "@/app/lib/mahjong"
 import Image from "next/image"
 import { HintPopup } from "@/app/components/ui/hint-popup"
+import { CustomTooltip } from "@/app/components/ui/custom-tooltip"
 import { useState } from "react"
 
 interface Props {
@@ -16,24 +17,25 @@ export function DoraIndicator({ dora }: Props) {
 
   return (
     <>
-      <Card
-        className="bg-yellow-50 border-yellow-200 cursor-pointer hover:bg-yellow-100 transition-colors"
-        onClick={() => setIsPopupOpen(true)}
-        title="クリックで説明を表示"
-      >
-        <CardContent className="flex items-center gap-2 p-3">
-          <span className="font-bold text-gray-600">ドラ:</span>
-          <div className="relative w-12 h-16">
-            <Image
-              src={tileImagePath}
-              alt={`ドラ ${dora}`}
-              fill
-              sizes="48px"
-              className="object-contain"
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <CustomTooltip content="💡 クリックでドラの説明を表示">
+        <Card
+          className="bg-yellow-50 border-yellow-200 cursor-pointer hover:bg-yellow-100 transition-colors"
+          onClick={() => setIsPopupOpen(true)}
+        >
+          <CardContent className="flex items-center gap-2 p-3">
+            <span className="font-bold text-gray-600">ドラ:</span>
+            <div className="relative w-12 h-16">
+              <Image
+                src={tileImagePath}
+                alt={`ドラ ${dora}`}
+                fill
+                sizes="48px"
+                className="object-contain"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </CustomTooltip>
 
       <HintPopup
         isOpen={isPopupOpen}
