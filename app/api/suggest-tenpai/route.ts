@@ -279,51 +279,59 @@ function detectPossibleYaku(tiles: string[], possibleMelds: { pairs: string[][],
     });
   }
 
-  // 一気通貫: 同色で1-9の連続する順子（123, 456, 789）
-  // 一気通貫の条件チェック：4面子1雀頭を作るために必要な組み合わせを探す
+
+  // 一気通貫: 同色で1-9のうち8種類以上ある
+  // 一気通貫の条件チェック：1-9の数字の種類数をカウント
   const ittsuSuits = ['m', 'p', 's'];
   const suitNames: { [key: string]: string } = { 'm': '萬子', 'p': '筒子', 's': '索子' };
 
   ittsuSuits.forEach(suit => {
-    const suitSequences = possibleMelds.sequences.filter((seq: string[]) => seq[0].endsWith(suit));
-    const sequenceNumbers = suitSequences.map((seq: string[]) => parseInt(seq[0][0])).sort();
+    // その色の数牌のみを取得
+    const suitTiles = tiles.filter(tile => tile.endsWith(suit));
 
-    // 一気通貫の条件をチェック：123, 456, 789の順子があるか
-    const has123 = sequenceNumbers.includes(1);
-    const has456 = sequenceNumbers.includes(4);
-    const has789 = sequenceNumbers.includes(7);
+    // 1-9の数字の種類数をカウント
+    const availableNumbers = new Set<number>();
+    suitTiles.forEach(tile => {
+      const num = parseInt(tile[0]);
+      if (num >= 1 && num <= 9) {
+        availableNumbers.add(num);
+      }
+    });
 
-    if (has123 && has456 && has789) {
+    const availableCount = availableNumbers.size;
+    const missingNumbers = [];
+    for (let i = 1; i <= 9; i++) {
+      if (!availableNumbers.has(i)) {
+        missingNumbers.push(i);
+      }
+    }
+
+    if (availableCount >= 8) {
       yakuList.push({
         yakuName: `一気通貫（${suitNames[suit]}）`,
         possibility: "高い",
-        description: `${suitNames[suit]}で123, 456, 789の順子が揃っているため、一気通貫を狙えます。一気通貫は2翻の役で、同色で1-9の連続する順子を作る役です。`,
+        description: `${suitNames[suit]}で1-9のうち${availableCount}個の数字が揃っているため、一気通貫を狙えます。一気通貫は2翻の役で、同色で1-9の連続する順子を作る役です。`,
         han: 2
       });
-    } else {
-      const missingSequences = [];
-      if (!has123) missingSequences.push('123');
-      if (!has456) missingSequences.push('456');
-      if (!has789) missingSequences.push('789');
-
-      const completedCount = 3 - missingSequences.length;
-      if (completedCount >= 2) {
-        yakuList.push({
-          yakuName: `一気通貫（${suitNames[suit]}）`,
-          possibility: "中程度",
-          description: `${suitNames[suit]}で${completedCount}組の順子が揃っており、残り${missingSequences.join('、')}の順子で一気通貫を狙えます。一気通貫は2翻の役です。`,
-          han: 2
-        });
-      } else if (completedCount >= 1) {
-        yakuList.push({
-          yakuName: `一気通貫（${suitNames[suit]}）`,
-          possibility: "低い",
-          description: `${suitNames[suit]}で${completedCount}組の順子が揃っており、残り${missingSequences.join('、')}の順子で一気通貫を狙えます。一気通貫は2翻の役です。`,
-          han: 2
-        });
-      }
     }
+    // 8種類未満の場合は検出しない
   });
+
+  // 緑一色: 2索、3索、4索、6索、8索、發のみで構成（役満）
+  // 緑一色の条件チェック：34枚から直接検出
+  const greenTiles = ['2s', '3s', '4s', '6s', '8s', '發'];
+  const greenTileCount = tiles.filter(tile => greenTiles.includes(tile)).length;
+  const nonGreenTiles = tiles.filter(tile => !greenTiles.includes(tile));
+
+  if (greenTileCount >= 12) {
+    yakuList.push({
+      yakuName: "緑一色",
+      possibility: "高い",
+      description: `緑一色の牌が${greenTileCount}枚あるため、緑一色を狙えます。緑一色は役満で、2索、3索、4索、6索、8索、發のみで手牌を作る役です。`,
+      han: 13
+    });
+  }
+  // 緑一色の牌が12枚未満の場合は検出しない
 
   // 三色同順: 萬子・筒子・索子で同じ数字の順子
   // 三色同順の条件チェック：4面子1雀頭を作るために必要な組み合わせを厳密にチェック
@@ -806,34 +814,6 @@ function detectPossibleYaku(tiles: string[], possibleMelds: { pairs: string[][],
   }
   // 刻子が3個未満の場合は検出しない（可能性なし）
 
-  // 緑一色: 2索、3索、4索、6索、8索、發のみで構成（役満）
-  // 緑一色の条件チェック：34枚から直接検出
-  const greenTiles = ['2s', '3s', '4s', '6s', '8s', '發'];
-  const greenTileCount = tiles.filter(tile => greenTiles.includes(tile)).length;
-  const nonGreenTiles = tiles.filter(tile => !greenTiles.includes(tile));
-
-  if (nonGreenTiles.length === 0 && greenTileCount >= 13) {
-    yakuList.push({
-      yakuName: "緑一色",
-      possibility: "高い",
-      description: `緑一色の牌のみで構成されているため、緑一色を狙えます。緑一色は役満で、2索、3索、4索、6索、8索、發のみで手牌を作る役です。`,
-      han: 13
-    });
-  } else if (nonGreenTiles.length <= 2 && greenTileCount >= 11) {
-    yakuList.push({
-      yakuName: "緑一色",
-      possibility: "中程度",
-      description: `緑一色の牌が${greenTileCount}枚あり、非緑色の牌が${nonGreenTiles.length}枚のみのため、緑一色の可能性があります。緑一色は役満です。`,
-      han: 13
-    });
-  } else if (nonGreenTiles.length <= 4 && greenTileCount >= 9) {
-    yakuList.push({
-      yakuName: "緑一色",
-      possibility: "低い",
-      description: `緑一色の牌が${greenTileCount}枚あり、非緑色の牌が${nonGreenTiles.length}枚のため、緑一色の可能性があります。緑一色は役満です。`,
-      han: 13
-    });
-  }
 
   // 九蓮宝燈: 同色で1112345678999の形（役満）
   // 九蓮宝燈の条件チェック：34枚から直接検出
