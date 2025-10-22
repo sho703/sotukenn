@@ -220,23 +220,31 @@ function detectPossibleYaku(tiles: string[], possibleMelds: { pairs: string[][],
     });
   }
 
-  // 小四喜: 風牌3種類を刻子、1種類を雀頭
-  const windCount = (tileCounts.honorDetails['東'] || 0) + (tileCounts.honorDetails['南'] || 0) + (tileCounts.honorDetails['西'] || 0) + (tileCounts.honorDetails['北'] || 0);
-  if (windCount >= 7) {
+  // 小四喜: 東西南北のうち2つが刻子、残りの2つが対子または刻子
+  const windTiles = ['東', '南', '西', '北'];
+  const windCounts = windTiles.map(wind => tileCounts.honorDetails[wind] || 0);
+
+  // 刻子の数（3枚以上）と対子の数（2枚以上）をカウント
+  const tripletCount = windCounts.filter(count => count >= 3).length;
+  const pairCount = windCounts.filter(count => count >= 2).length;
+
+  // 2つが刻子で、残りの2つが対子または刻子の場合のみ検出
+  if (tripletCount >= 2 && pairCount >= 4) {
     yakuList.push({
       yakuName: "小四喜",
       possibility: "中程度",
-      description: `風牌が${windCount}枚あるため、小四喜を狙えます。小四喜は13翻の役満で、風牌3種類を刻子、1種類を雀頭にする役です。`,
+      description: `風牌のうち${tripletCount}種類が刻子、残りが対子または刻子になっているため、小四喜を狙えます。小四喜は13翻の役満で、風牌3種類を刻子、1種類を雀頭にする役です。`,
       han: 13
     });
   }
 
   // 大四喜: 風牌4種類すべてを刻子
-  if (windCount >= 12) {
+  const totalWindCount = windCounts.reduce((sum, count) => sum + count, 0);
+  if (totalWindCount >= 12) {
     yakuList.push({
       yakuName: "大四喜",
       possibility: "高い",
-      description: `風牌が${windCount}枚あるため、大四喜を狙えます。大四喜は13翻の役満で、風牌4種類すべてを刻子にする役です。`,
+      description: `風牌が${totalWindCount}枚あるため、大四喜を狙えます。大四喜は13翻の役満で、風牌4種類すべてを刻子にする役です。`,
       han: 13
     });
   }
@@ -350,16 +358,18 @@ function detectPossibleYaku(tiles: string[], possibleMelds: { pairs: string[][],
   });
 
   // 同じ数字で3色揃っているか厳密にチェック
+  let sanshokuDetected = false;
   Object.entries(sequenceNumbers).forEach(([number, suits]) => {
     const uniqueSuits = [...new Set(suits)];
-    if (uniqueSuits.length >= 3) {
-      // 3色揃っている場合のみ「高い」可能性
+    if (uniqueSuits.length >= 3 && !sanshokuDetected) {
+      // 3色揃っている場合のみ「高い」可能性（重複防止）
       yakuList.push({
         yakuName: "三色同順",
         possibility: "高い",
         description: `${number}の順子が萬子・筒子・索子の${uniqueSuits.length}色で揃っているため、三色同順を狙えます。三色同順は2翻の役で、萬子・筒子・索子で同じ数字の順子を作る役です。`,
         han: 2
       });
+      sanshokuDetected = true; // 重複防止フラグを立てる
     }
     // 2色以下は検出しない（厳密化）
   });
@@ -381,16 +391,18 @@ function detectPossibleYaku(tiles: string[], possibleMelds: { pairs: string[][],
   });
 
   // 同じ数字で3色揃っているか厳密にチェック
+  let sanshokuTripletDetected = false;
   Object.entries(tripletNumbers).forEach(([number, suits]) => {
     const uniqueSuits = [...new Set(suits)];
-    if (uniqueSuits.length >= 3) {
-      // 3色揃っている場合のみ「高い」可能性
+    if (uniqueSuits.length >= 3 && !sanshokuTripletDetected) {
+      // 3色揃っている場合のみ「高い」可能性（重複防止）
       yakuList.push({
         yakuName: "三色同刻",
         possibility: "高い",
         description: `${number}の刻子が萬子・筒子・索子の${uniqueSuits.length}色で揃っているため、三色同刻を狙えます。三色同刻は2翻の役で、萬子・筒子・索子で同じ数字の刻子を作る役です。`,
         han: 2
       });
+      sanshokuTripletDetected = true; // 重複防止フラグを立てる
     }
     // 2色以下は検出しない（厳密化）
   });

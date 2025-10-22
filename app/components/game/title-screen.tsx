@@ -228,7 +228,7 @@ export function TitleScreen({ onStartGame }: Props) {
                 <p>• 13枚の手札を選択してゲーム開始</p>
                 <p>• 相手に上がられないように牌を捨てる</p>
                 <p>• 上がったらポイント獲得</p>
-                <p>• 先に5ポイント獲得した方が勝利</p>
+                <p>• 先に10ポイント獲得した方が勝利</p>
               </div>
             </div>
           </div>

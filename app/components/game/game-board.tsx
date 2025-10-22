@@ -745,13 +745,13 @@ export function GameBoard({
               </h2>
 
               {/* 勝利判定 */}
-              {(score.player >= 5 || score.cpu >= 5) && (
+              {(score.player >= 10 || score.cpu >= 10) && (
                 <div className="mb-6 p-6 bg-gradient-to-r from-mahjong-gold-500 to-mahjong-gold-600 border-4 border-mahjong-gold-400 rounded-2xl shadow-mahjong-button">
                   <h3 className="text-3xl font-bold text-white mb-2 font-japanese">
                     🏆 ゲーム終了！
                   </h3>
                   <p className="text-xl text-white font-japanese">
-                    {score.player >= 5 ? 'プレイヤーの勝利！' : 'CPUの勝利！'}
+                    {score.player >= 10 ? 'プレイヤーの勝利！' : 'CPUの勝利！'}
                   </p>
                 </div>
               )}
@@ -831,7 +831,7 @@ export function GameBoard({
               </div>
 
               <div className="flex justify-center gap-6">
-                {score.player >= 5 || score.cpu >= 5 ? (
+                {score.player >= 10 || score.cpu >= 10 ? (
                   <Button
                     onClick={endGame}
                     variant="mahjong"
@@ -928,7 +928,7 @@ export function GameBoard({
                 </div>
               </div>
               <div className="flex justify-center gap-6">
-                {score.player >= 5 || score.cpu >= 5 ? (
+                {score.player >= 10 || score.cpu >= 10 ? (
                   <Button
                     onClick={endGame}
                     variant="mahjong"
@@ -1185,7 +1185,7 @@ export function GameBoard({
                     <Image src={getTileImagePath('中')} alt="中" fill sizes="32px" className="object-contain" />
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 mt-2">字牌は役になりやすいので、相手が欲しがる可能性が高いです</p>
+                <p className="text-sm text-gray-600 mt-2">字牌では複数枚の待ちになることが少ないので数牌に比べて安全です。</p>
               </div>
             </div>
 
