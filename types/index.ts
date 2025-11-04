@@ -46,6 +46,7 @@ export interface MahjongDealState {
   doraTile: Tile | null;
   suggestions: TenpaiPattern[] | null;
   isAnalyzing: boolean;
+  isCompletingSelection: boolean; // 選択完了処理中かどうか
   hasDealt: boolean;
   error: string | null;
   gamePhase: GamePhase;
