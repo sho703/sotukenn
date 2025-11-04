@@ -16,31 +16,19 @@ interface WinCheckResponse {
   fu?: number;           // 符数
 }
 
-// 牌の形式はそのまま使用（Python側で変換）
-function convertTileFormat(tile: string): string {
-  return tile;
-}
-
-// Python スクリプトを実行して和了判定
-async function checkWinWithPython(tiles: string[], lastTile: string, dora: string): Promise<WinCheckResponse> {
+// Pythonスクリプトを実行して和了判定（ローカル開発環境用）
+async function checkWinWithPythonLocal(tiles: string[], lastTile: string, dora: string): Promise<WinCheckResponse> {
   return new Promise<WinCheckResponse>((resolve, reject) => {
-    // 牌を mahjong ライブラリの形式に変換
-    const convertedTiles = tiles.map(convertTileFormat);
-    const convertedLastTile = convertTileFormat(lastTile);
-    const convertedDora = convertTileFormat(dora);
-
-    // Python スクリプトのパス
     const pythonScript = path.join(process.cwd(), 'python', 'mahjong_checker.py');
 
     const inputData = JSON.stringify({
-      tiles: convertedTiles,
-      lastTile: convertedLastTile,
-      dora: convertedDora
+      tiles: tiles,
+      lastTile: lastTile,
+      dora: dora
     });
 
     console.log('Python script input:', inputData);
 
-    // Python プロセスを起動
     const python = spawn('python', [pythonScript, inputData]);
 
     let output = '';
@@ -73,6 +61,33 @@ async function checkWinWithPython(tiles: string[], lastTile: string, dora: strin
   });
 }
 
+// RenderのPython APIサーバーを呼び出す（本番環境用）
+async function checkWinWithPythonAPI(tiles: string[], lastTile: string, dora: string): Promise<WinCheckResponse> {
+  try {
+    // 環境変数からPython APIのURLを取得
+    const pythonApiUrl = process.env.PYTHON_API_URL || 'http://localhost:8000';
+
+    const response = await fetch(`${pythonApiUrl}/api/check-win`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ tiles, lastTile, dora }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Python API failed with status ${response.status}: ${errorText}`);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Python API error:', error);
+    throw error;
+  }
+}
+
 export async function POST(request: NextRequest) {
   console.log('API /check-win called');
 
@@ -103,7 +118,12 @@ export async function POST(request: NextRequest) {
 
     // Python スクリプトで和了判定
     try {
-      const result = await checkWinWithPython(tiles, lastTile, dora);
+      // 環境変数でPython API URLが設定されている場合はAPIサーバーを使用
+      // それ以外はローカルでPythonスクリプトを実行
+      const usePythonAPI = !!process.env.PYTHON_API_URL;
+      const result = usePythonAPI
+        ? await checkWinWithPythonAPI(tiles, lastTile, dora)
+        : await checkWinWithPythonLocal(tiles, lastTile, dora);
       console.log('Python script result:', result);
       return NextResponse.json(result);
     } catch (pythonError) {

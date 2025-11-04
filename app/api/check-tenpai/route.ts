@@ -13,8 +13,8 @@ interface TenpaiCheckResponse {
   error?: string;
 }
 
-// Python スクリプトを実行して聴牌判定
-async function checkTenpaiWithPython(tiles: string[], dora: string): Promise<TenpaiCheckResponse> {
+// Pythonスクリプトを実行して聴牌判定（ローカル開発環境用）
+async function checkTenpaiWithPythonLocal(tiles: string[], dora: string): Promise<TenpaiCheckResponse> {
   return new Promise<TenpaiCheckResponse>((resolve, reject) => {
     const pythonScript = path.join(process.cwd(), 'python', 'tenpai_checker.py');
 
@@ -54,6 +54,33 @@ async function checkTenpaiWithPython(tiles: string[], dora: string): Promise<Ten
   });
 }
 
+// RenderのPython APIサーバーを呼び出す（本番環境用）
+async function checkTenpaiWithPythonAPI(tiles: string[], dora: string): Promise<TenpaiCheckResponse> {
+  try {
+    // 環境変数からPython APIのURLを取得
+    const pythonApiUrl = process.env.PYTHON_API_URL || 'http://localhost:8000';
+
+    const response = await fetch(`${pythonApiUrl}/api/check-tenpai`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ tiles, dora }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Python API failed with status ${response.status}: ${errorText}`);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Python API error:', error);
+    throw error;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body: TenpaiCheckRequest = await request.json();
@@ -75,7 +102,12 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      const result = await checkTenpaiWithPython(tiles, dora);
+      // 環境変数でPython API URLが設定されている場合はAPIサーバーを使用
+      // それ以外はローカルでPythonスクリプトを実行
+      const usePythonAPI = !!process.env.PYTHON_API_URL;
+      const result = usePythonAPI
+        ? await checkTenpaiWithPythonAPI(tiles, dora)
+        : await checkTenpaiWithPythonLocal(tiles, dora);
       return NextResponse.json(result);
     } catch (pythonError) {
       console.error('Python tenpai check error:', pythonError);

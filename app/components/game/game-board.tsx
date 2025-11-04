@@ -53,6 +53,7 @@ interface Props {
 
   // 状態
   isAnalyzing: boolean;
+  isCompletingSelection: boolean;
   hasDealt: boolean;
   suggestions: TenpaiPattern[] | null;
   currentRound: number;
@@ -103,6 +104,7 @@ export function GameBoard({
 
   // 状態
   isAnalyzing,
+  isCompletingSelection,
   hasDealt,
   suggestions,
   currentRound,
@@ -234,7 +236,7 @@ export function GameBoard({
         highlightEnd: 9
       },
       '対々和': {
-        reading: 'トイトイホー',
+        reading: 'トイトイ',
         points: '2ポイント',
         tips: '同じ牌の3枚セット4組と2枚ペア1組で手札を作る役です。順番の3枚セットは使わず、すべて同じ牌の3枚セットと2枚ペアで揃えます。',
         exampleTiles: ['1m', '1m', '1m', '5m', '5m', '5m', '2p', '2p', '2p', '8p', '8p', '3s', '3s'],
@@ -252,7 +254,7 @@ export function GameBoard({
         highlightEnd: 13
       },
       '混全帯么九': {
-        reading: 'ホンチャンタイヤオチュー',
+        reading: 'チャンタ',
         points: '2ポイント',
         tips: 'すべての3枚セットと2枚ペアに1・9の数牌か字牌を含める役です。中間の数牌だけでは作れません。',
         exampleTiles: ['1m', '2m', '3m', '9m', '9m', '9m', '1p', '1p', '1p', '西', '西', '1s', '2s'],
@@ -297,7 +299,7 @@ export function GameBoard({
         highlightEnd: 12
       },
       '純全帯么九': {
-        reading: 'ジュンチャンタイヤオチュー',
+        reading: 'ジュンチャン',
         points: '3ポイント',
         tips: 'すべての3枚セットと2枚ペアに1・9の数牌を含める役です。字牌は使えません。',
         exampleTiles: ['1m', '2m', '3m', '9m', '9m', '9m', '1p', '1p', '1p', '9p', '9p', '1s', '2s'],
@@ -306,7 +308,7 @@ export function GameBoard({
         highlightEnd: 13
       },
       '清一色': {
-        reading: 'チンイーソー',
+        reading: 'チンイツ',
         points: '6ポイント',
         tips: '萬子（マンズ）・筒子（ピンズ）・索子（ソーズ）のいずれか1種類だけで手札を作る役です。高得点の役です。',
         exampleTiles: ['1m', '1m', '2m', '3m', '4m', '4m', '5m', '5m', '6m', '7m', '7m', '8m', '9m'],
@@ -556,9 +558,9 @@ export function GameBoard({
                 <div className="flex gap-3">
                   <Button
                     onClick={reset}
-                    disabled={handTiles.length === 0}
+                    disabled={handTiles.length === 0 || isCompletingSelection}
                     variant="mahjong"
-                    className={`px-6 py-3 rounded-xl font-semibold ${handTiles.length > 0
+                    className={`px-6 py-3 rounded-xl font-semibold ${handTiles.length > 0 && !isCompletingSelection
                       ? 'bg-gradient-to-r from-mahjong-red-600 to-mahjong-red-700 text-white border-2 border-mahjong-red-400/50'
                       : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                       }`}
@@ -577,9 +579,9 @@ export function GameBoard({
                   </Button>
                   <Button
                     onClick={completeSelection}
-                    disabled={handTiles.length !== 13}
+                    disabled={handTiles.length !== 13 || isCompletingSelection}
                     variant="mahjong"
-                    className={`px-6 py-3 rounded-xl font-semibold ${handTiles.length === 13
+                    className={`px-6 py-3 rounded-xl font-semibold ${handTiles.length === 13 && !isCompletingSelection
                       ? 'bg-gradient-to-r from-mahjong-gold-600 to-mahjong-gold-700 text-white border-2 border-mahjong-gold-400/50'
                       : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                       }`}
@@ -594,7 +596,7 @@ export function GameBoard({
                       e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06)';
                     }}
                   >
-                    ✅ 選択完了 ({handTiles.length}/13枚)
+                    {isCompletingSelection ? '🔍 聴牌チェック中...' : `✅ 選択完了 (${handTiles.length}/13枚)`}
                   </Button>
                 </div>
               </div>
@@ -612,7 +614,7 @@ export function GameBoard({
                 <div className="flex items-center gap-4">
                   <Button
                     onClick={analyzeTenpai}
-                    disabled={!hasDealt || isAnalyzing}
+                    disabled={!hasDealt || isAnalyzing || isCompletingSelection}
                     variant="mahjong"
                     className="px-6 py-3 bg-gradient-to-r from-mahjong-blue-600 to-mahjong-blue-700 text-white rounded-xl disabled:from-gray-600 disabled:to-gray-700 border-2 border-mahjong-gold-400/50"
                     onMouseEnter={(e) => {
@@ -1445,6 +1447,22 @@ export function GameBoard({
           isTenpai={tenpaiModal.isTenpai}
           error={tenpaiModal.error}
         />
+
+        {/* 選択完了処理中のローディングオーバーレイ */}
+        {isCompletingSelection && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 animate-in fade-in duration-200">
+            <div className="flex flex-col items-center gap-6">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-mahjong-gold-400 border-t-transparent"></div>
+              <div className="text-white text-2xl font-japanese font-bold text-center">
+                🔍 聴牌チェック中...
+              </div>
+              <div className="text-mahjong-gold-200 text-lg font-japanese text-center max-w-md">
+                手牌の聴牌判定とCPUの手牌生成を行っています。<br />
+                しばらくお待ちください。
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

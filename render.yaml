@@ -1,0 +1,25 @@
+services:
+  # Python APIバックエンド（先にデプロイ）
+  - type: web
+    name: mahjong-api
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python api_server.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.0
+
+  # Next.jsフロントエンド
+  - type: web
+    name: mahjong-frontend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # PYTHON_API_URLはRenderダッシュボードで手動設定が必要
+      # 例: https://mahjong-api.onrender.com
+      - key: GEMINI_API_KEY
+        sync: false  # 環境変数として手動で設定
+

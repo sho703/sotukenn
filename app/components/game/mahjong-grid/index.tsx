@@ -7,14 +7,25 @@ interface Props {
   tiles: Tile[];
   onTileClick: (tileId: string) => void;
   dora?: string;
+  isTileDisabled?: (tile: Tile) => boolean;
 }
 
 // クリック可能な麻雀牌コンポーネント
-function ClickableMahjongTile({ tile, isDora, onTileClick }: { tile: Tile; isDora: boolean; onTileClick: (tileId: string) => void }) {
+function ClickableMahjongTile({
+  tile,
+  isDora,
+  onTileClick,
+  disabled
+}: {
+  tile: Tile;
+  isDora: boolean;
+  onTileClick: (tileId: string) => void;
+  disabled?: boolean;
+}) {
   return (
     <div
-      onClick={() => onTileClick(tile.id)}
-      className="cursor-pointer hover:scale-105 transition-transform"
+      onClick={() => !disabled && onTileClick(tile.id)}
+      className={`${disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer hover:scale-105'} transition-transform`}
     >
       <MahjongTile
         tile={tile}
@@ -26,7 +37,7 @@ function ClickableMahjongTile({ tile, isDora, onTileClick }: { tile: Tile; isDor
   );
 }
 
-export function MahjongGrid({ tiles = [], onTileClick, dora }: Props) {
+export function MahjongGrid({ tiles = [], onTileClick, dora, isTileDisabled }: Props) {
   return (
     <div className="grid grid-cols-7 sm:grid-cols-9 md:grid-cols-11 lg:grid-cols-13 xl:grid-cols-15 2xl:grid-cols-17 gap-2 p-6 bg-transparent rounded max-w-7xl mx-auto">
       {tiles.map((tile) => (
@@ -35,6 +46,7 @@ export function MahjongGrid({ tiles = [], onTileClick, dora }: Props) {
           tile={tile}
           isDora={tile.type === dora}
           onTileClick={onTileClick}
+          disabled={isTileDisabled ? isTileDisabled(tile) : false}
         />
       ))}
     </div>

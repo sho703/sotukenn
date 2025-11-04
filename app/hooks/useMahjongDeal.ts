@@ -94,6 +94,9 @@ export function useMahjongDeal(): MahjongDealHook {
   const [suggestions, setSuggestions] = useState<TenpaiPattern[] | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
+  // 選択完了処理のローディング状態
+  const [isCompletingSelection, setIsCompletingSelection] = useState(false);
+
   // ドラ表示牌を1つ戻す関数（Pythonに送る用）
   const getDoraForPython = (doraIndicator: string): string => {
     if (doraIndicator.endsWith('m') || doraIndicator.endsWith('p') || doraIndicator.endsWith('s')) {
@@ -271,9 +274,13 @@ export function useMahjongDeal(): MahjongDealHook {
 
   // 手牌選択完了の処理
   const completeSelection = async () => {
-    if (gamePhase !== 'selecting' || handTiles.length !== 13) {
+    if (gamePhase !== 'selecting' || handTiles.length !== 13 || isCompletingSelection) {
       return;
     }
+
+    // ローディング状態を開始
+    setIsCompletingSelection(true);
+    setError(null);
 
     // 新しく生成されたCPU手牌を保存する変数
     let finalCpuHandTiles: Tile[] = [];
@@ -417,6 +424,7 @@ export function useMahjongDeal(): MahjongDealHook {
         winningTile: randomTile
       };
       await setCpuState(newCpuState);
+      setIsCompletingSelection(false);
     }
 
     // 2. プレイヤー聴牌チェック
@@ -441,6 +449,7 @@ export function useMahjongDeal(): MahjongDealHook {
             isTenpai: false,
             error: '選択した手牌は聴牌ではありません。別の組み合わせを選択してください。'
           });
+          setIsCompletingSelection(false);
           return;
         }
 
@@ -460,6 +469,7 @@ export function useMahjongDeal(): MahjongDealHook {
           isTenpai: false,
           error: '聴牌チェック中にエラーが発生しました。'
         });
+        setIsCompletingSelection(false);
         return;
       }
     } catch (error) {
@@ -470,6 +480,7 @@ export function useMahjongDeal(): MahjongDealHook {
         isTenpai: false,
         error: '聴牌チェック中にエラーが発生しました。'
       });
+      setIsCompletingSelection(false);
       return;
     }
 
@@ -510,6 +521,7 @@ export function useMahjongDeal(): MahjongDealHook {
     setPoolTiles(remainingTiles);  // 選択可能な捨て牌
     setGamePhase('playing');
     setIsPlayerTurn(true);
+    setIsCompletingSelection(false);
 
   };
 
@@ -836,6 +848,7 @@ export function useMahjongDeal(): MahjongDealHook {
     // 分析状態
     suggestions,
     isAnalyzing,
+    isCompletingSelection,
 
     // 操作
     reset,

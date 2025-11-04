@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import Image from 'next/image';
+import Link from 'next/link';
 import { getTileImagePath } from '@/app/lib/mahjong';
 
 interface Props {
@@ -41,23 +42,46 @@ export function TitleScreen({ onStartGame }: Props) {
         </div>
 
         {/* スタートボタン */}
-        <div className="relative">
-          <Button
-            onClick={onStartGame}
-            size="lg"
-            className="px-16 py-6 text-2xl font-bold bg-gradient-to-r from-mahjong-gold-500 to-mahjong-gold-600 text-white rounded-2xl shadow-mahjong-button transition-all duration-300 transform font-japanese border-2 border-mahjong-gold-400"
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06)';
-            }}
-          >
-            🎮 ゲームスタート
-          </Button>
-          <div className="absolute -inset-1 bg-gradient-to-r from-mahjong-gold-400 to-mahjong-gold-500 rounded-2xl blur opacity-75 -z-10"></div>
+        <div className="space-y-4">
+          <div className="relative">
+            <Button
+              onClick={onStartGame}
+              size="lg"
+              className="px-16 py-6 text-2xl font-bold bg-gradient-to-r from-mahjong-gold-500 to-mahjong-gold-600 text-white rounded-2xl shadow-mahjong-button transition-all duration-300 transform font-japanese border-2 border-mahjong-gold-400"
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06)';
+              }}
+            >
+              🎮 ゲームスタート
+            </Button>
+            <div className="absolute -inset-1 bg-gradient-to-r from-mahjong-gold-400 to-mahjong-gold-500 rounded-2xl blur opacity-75 -z-10"></div>
+          </div>
+
+          <div className="relative">
+            <Link href="/tutorial">
+              <Button
+                size="lg"
+                variant="outline"
+                className="px-16 py-6 text-2xl font-bold bg-gradient-to-r from-mahjong-blue-500 to-mahjong-blue-600 text-white rounded-2xl shadow-mahjong-button transition-all duration-300 transform font-japanese border-2 border-mahjong-blue-400"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06)';
+                }}
+              >
+                📚 チュートリアル
+              </Button>
+            </Link>
+            <div className="absolute -inset-1 bg-gradient-to-r from-mahjong-blue-400 to-mahjong-blue-500 rounded-2xl blur opacity-75 -z-10"></div>
+          </div>
         </div>
 
         {/* 麻雀の基本説明 */}
